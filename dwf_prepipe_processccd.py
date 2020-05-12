@@ -6,12 +6,21 @@ import shutil
 import argparse
 import subprocess
 import glob
-
+import sys
 #~/.astropy/config/astropy.cfg was getting messed up - seperate default (used by pipeloop?) and this
 # os.environ['XDG_CONFIG_HOME']='/home/fstars/.python3_config/'
 
 import astropy.io.fits as pyfits
 import astropy.units as u 
+
+
+
+#####################################################################
+###############      CHANGE DATE FOR IAMGES       ###################
+
+run_date = sys.argv[0]
+
+#####################################################################
 
 def check_path(path):
     """Check if path ends with a slash ('/'). Else, it adds a slash.
@@ -136,7 +145,7 @@ def main():
     parser.add_argument('-l','--local',metavar='DIRECTORY',type=int,default=use_local,
         help='Use node local storage for jpg to fits conversion? (1 or 0)')
     parser.add_argument('-i','--input_file',type=str,help='input .jp2 file')
-
+    parser.add_argument('-d', '--input_date', type=str, help='date for files during run')
     args = parser.parse_args()
 
     #Set local Directory and check to see if it exists
@@ -184,7 +193,7 @@ def main():
     ##The initial fits works but doesn't straddle month's, plus since the check is based off of
     ## CURRENT time NOT observed time it can screw up on reprocessing data.  Fix both of these.
     timestamp=datetime.datetime.utcnow().time()
-    ut = 'ut191202'
+    ut = args.input_date
     #if(timestamp > datetime.time(22,30)):
         #ut='ut'+str(int(pyfits.getval(uncompressed_fits,"OBSID")[6:12])+1)
     #else:
