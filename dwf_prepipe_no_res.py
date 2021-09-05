@@ -101,7 +101,7 @@ def dwf_prepipe_sbatchccds(filename_root,qroot,ccds,sbatch_path,push_path, run_d
 	subprocess.run(['sbatch',sbatch_name])
 
 def main():
-    DWF_Push = "/import/ada2/ddob1600/DWF_PIPE_TEST"
+    DWF_Push = "/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/"
     parser = argparse.ArgumentParser(description='Handle File Ingests for the DWF pipeline', formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--push_dir',metavar='DIRECTORY',type=str,default=DWF_Push, help='Directory where tarballs of compressed files are placed')
     parser.add_argument('--run_date', type=str, help='Date of the run night and data being unpacked')
