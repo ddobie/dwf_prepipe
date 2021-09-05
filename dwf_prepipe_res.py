@@ -131,7 +131,11 @@ def main():
         if removed: print("Removed: ", ", ".join (removed))
 
         for f in added:
-            dwf_prepipe_unpack(f,path_to_watch,path_to_untar,path_to_sbatch, run_date)
+            fsize1 = os.stat(f).st_size
+            time.sleep(1)
+            fsize2 = os.stat(f).st_size
+            if fsize1 == fsize2:
+                dwf_prepipe_unpack(f,path_to_watch,path_to_untar,path_to_sbatch, run_date)
 
         before = after
         time.sleep (5)
