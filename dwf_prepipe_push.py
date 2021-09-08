@@ -180,6 +180,46 @@ def parse_args():
 	
 	return args
 
+
+def process_parallel(filelist):
+    for f in filelist:
+	    print('Processing: '+f)
+	    dwf_prepipe_validatefits(f,path_to_watch)
+	    dwf_prepipe_packagefile(f,path_to_watch,Qs)
+	    dwf_prepipe_parallel_pushfile(f,path_to_watch)
+	    dwf_prepipe_cleantemp(f,path_to_watch)
+	    
+def process_serial(filelist):
+    dwf_prepipe_validatefits(filelist[-1],path_to_watch)
+    print('Processing: '+filelist[-1])
+    dwf_prepipe_packagefile(filelist[-1],path_to_watch,Qs)
+    dwf_prepipe_serial_pushfile(filelist[-1],path_to_watch)
+    dwf_prepipe_cleantemp(f,path_to_watch)
+    
+def process_bundle(filelist):
+    sorted_filelist=sorted(filelist)
+    
+    if len(sorted_filelist) > nbundle:
+	    bundle=sorted_filelist[-1*nbundle:]
+    else:
+	    bundle=sorted_filelist
+    
+    print(['Bundling:'+str(f) for f in bundle])
+    
+    bundle_size = len(bundle)
+    
+    for i, f in enumerate(bundle):
+	    print('Processing: '+f)
+	    dwf_prepipe_validatefits(f,path_to_watch)
+	    dwf_prepipe_packagefile(f,path_to_watch,Qs)
+	    #do all but the last scp in parallel; then force python to wait until the final transfer is complete
+	    if i < bundlesize:
+	        dwf_prepipe_parallel_pushfile(f,path_to_watch)
+	    else:
+		    dwf_prepipe_serial_pushfile(f,path_to_watch)
+		    
+	    dwf_prepipe_cleantemp(f,path_to_watch)
+
 def main():
 	
 	args = parse_args()
@@ -198,48 +238,22 @@ def main():
 		return
 
 	while True:
-
-		after = dict ([(f, None) for f in glob.glob(path_to_watch+'*.fits.fz')])
+        after = dict ([(f, None) for f in glob.glob(path_to_watch+'*.fits.fz')])
 		added = [f for f in after if not f in before]
 		removed = [f for f in before if not f in after]
 
-		if added: print("Added: ", ", ".join (added))
-		if removed: print("Removed: ", ", ".join (removed))
+		if added:
+		    print("Added: ", ", ".join (added))
 
-		if ((method == 'p') and added):
-			for f in added:
-				print('Processing: '+f)
-				dwf_prepipe_validatefits(f,path_to_watch)
-				dwf_prepipe_packagefile(f,path_to_watch,Qs)
-				dwf_prepipe_parallel_pushfile(f,path_to_watch)
-				dwf_prepipe_cleantemp(f,path_to_watch)
-
-		if ((method == 's') and added):
-			dwf_prepipe_validatefits(added[-1],path_to_watch)
-			print('Processing: '+added[-1])
-			dwf_prepipe_packagefile(added[-1],path_to_watch,Qs)
-			dwf_prepipe_serial_pushfile(added[-1],path_to_watch)
-			dwf_prepipe_cleantemp(f,path_to_watch)
-
-		if ((method == 'b') and added):
-			sortadd=added
-			sortadd.sort()
-			if(len(sortadd) > nbundle):
-				bundle=sortadd[-1*nbundle:]
-			else:
-				bundle=sortadd
-			print(['Bundling:'+str(f) for f in bundle])
-			for f in bundle:
-				print('Processing: '+f)
-				dwf_prepipe_validatefits(f,path_to_watch)
-				dwf_prepipe_packagefile(f,path_to_watch,Qs)
-				#do all but the last scp in parallel; then force python to wait until the final transfer is complete
-				if(f == bundle[len(bundle)-1]):
-					dwf_prepipe_serial_pushfile(f,path_to_watch)
-				else:
-					dwf_prepipe_parallel_pushfile(f,path_to_watch)
-				dwf_prepipe_cleantemp(f,path_to_watch)
-
+		    if method == 'p':
+			    process_parallel(added)
+            elif method == 's':
+			    process_serial(filelist)
+            elif method == 'b':
+			    process_bundle(filelist)
+		
+		if removed:
+		    print("Removed: ", ", ".join (removed))
 		before = after
 		time.sleep (1)
 if __name__ == '__main__':
