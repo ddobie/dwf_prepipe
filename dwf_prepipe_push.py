@@ -152,62 +152,42 @@ class CTIOPush:
 	                    )
 
     #Parallel Ship file to G2
-    def dwf_prepipe_parallel_pushfile(file,data_dir):
+    def dwf_prepipe_parallel_pushfile(self, file):
 	    file_name=file.split('/')[-1].split('.')[0]
 
-	    #g2 configuration
-	    user='fstars'
-	    host='ozstar.swin.edu.au'
-	    reciever=user+'@'+host
-	    push_dir='/fred/oz100/fstars/push/'
-	    target_dir='/fred/oz100/fstars/DWF_Unpack_Test/push/'
-
-	    jp2_dir=data_dir+"jp2/"
-
 	    print('Shipping:'+jp2_dir+file_name+'.tar')
-	    command="scp "+jp2_dir+file_name+".tar "+reciever+":"+push_dir+"; ssh "+reciever+" 'mv "+push_dir+file_name+".tar "+target_dir+"' ; rm "+jp2_dir+file_name+".tar "
+	    command="scp "+self.jp2_dir+file_name+".tar "+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"' ; rm "+self.jp2_dir+file_name+".tar "
 	    subprocess.Popen(command,shell=True)
 	    print('Returning to watch directory')
 
     #Serial Ship to g2
-    def dwf_prepipe_serial_pushfile(file,data_dir):
+    def dwf_prepipe_serial_pushfile(self,file):
 	    file_name=file.split('/')[-1].split('.')[0]
-	    #g2 configuration
-	    user='fstars'
-	    host='ozstar.swin.edu.au'
-	    reciever=user+'@'+host
-	    push_dir='/fred/oz100/fstars/push/'
-	    target_dir='/fred/oz100/fstars/DWF_Unpack_Test/push/'
 
-	    jp2_dir=data_dir+"jp2/"
-
-	    print('Shipping:'+jp2_dir+file_name+'.tar')
-	    command="scp "+jp2_dir+file_name+".tar "+reciever+":"+push_dir+"; ssh "+reciever+" 'mv "+push_dir+file_name+".tar "+target_dir+"'; rm "+jp2_dir+file_name+".tar "
+	    print('Shipping:'+self.jp2_dir+file_name+'.tar')
+	    command="scp "+self.jp2_dir+file_name+".tar "+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"'; rm "+self.jp2_dir+file_name+".tar "
 	    subprocess.run(command,shell=True)
 	    print('Returning to watch directory')
 
-    def dwf_prepipe_cleantemp(file,data_dir):
+    def dwf_prepipe_cleantemp(self,file):
 	    ##Clean Temperary files - unpacked .fits, bundler .tar and individual .jp2
 	    file_name=file.split('/')[-1].split('.')[0]
-	    jp2_dir=data_dir+"jp2/"+file_name
 	    fits_name=file_name+'.fits'
+	    
 	    #remove funpacked .fits file
-	    print('Removing: '+data_dir+fits_name)
-	    os.remove(data_dir+fits_name)
+	    print('Removing: '+self.data_dir+fits_name)
+	    os.remove(self.data_dir+fits_name)
 	    #remove excess .tar
 	    #print('Removing: '+jp2_dir+file_name+'.tar')
 	    #os.remove(jp2_dir+'.tar')
 	    #Remove .jp2 files
-	    print('Cleaning: '+jp2_dir+'/')
-	    [os.remove(jp2_dir+'/'+jp2) for jp2 in os.listdir(jp2_dir) if jp2.endswith(".jp2")]
+	    print('Cleaning: '+self.jp2_dir+'/')
+	    [os.remove(self.jp2_dir+'/'+jp2) for jp2 in os.listdir(self.jp2_dir) if jp2.endswith(".jp2")]
 
-    def dwf_prepipe_endofnight(data_dir,exp_min,Qs):
-	    user='fstars'
-	    host='ozstar.swin.edu.au'
-	    target_dir='/fred/oz100/fstars/DWF_Unpack_Test/push/'
+    def dwf_prepipe_endofnight(self):
 
 	    #Get list of files in remote target directory & list of files in local directory
-	    remote_list=subprocess.getoutput("ssh "+user+"@"+host+" 'ls "+target_dir+"*.tar'")
+	    remote_list=subprocess.getoutput("ssh "+self.user+"@"+self.host+" 'ls "+self.target_dir+"*.tar'")
 	    sent_files=[file.split('/')[-1].split('.')[0] for file in remote_list.splitlines() if file.endswith(".tar")]
 	    obs_list=[f.split('/')[-1].split('.')[0] for f in glob.glob(data_dir+'*.fits.fz')]
 
@@ -224,11 +204,11 @@ class CTIOPush:
 
 	    for i, f in enumerate(missing):
 		    exp=int(f.split('_')[1])
-		    if(exp > exp_min):
+		    if(exp > self.exp_min):
 			    print('Processing: {} ({} of {})'.format(f, i, num_missing)
-			    packagefile(f,data_dir,Qs)
-			    dwf_prepipe_serial_pushfile(f,data_dir)
-			    dwf_prepipe_cleantemp(f,data_dir)
+			    self.packagefile(f)
+			    dwf_prepipe_serial_pushfile(f)
+			    dwf_prepipe_cleantemp(f)
         
     def process_parallel(filelist):
         for f in filelist:
