@@ -197,7 +197,7 @@ def main():
 		dwf_prepipe_endofnight(path_to_watch, exp_min, Qs)
 		return
 
-	while 1:
+	while True:
 
 		after = dict ([(f, None) for f in glob.glob(path_to_watch+'*.fits.fz')])
 		added = [f for f in after if not f in before]
