@@ -152,7 +152,7 @@ class CTIOPush:
 	                    )
 
     #Parallel Ship file to G2
-    def dwf_prepipe_parallel_pushfile(self, file):
+    def parallel_pushfile(self, file):
 	    file_name=file.split('/')[-1].split('.')[0]
 
 	    print('Shipping:'+jp2_dir+file_name+'.tar')
@@ -161,7 +161,7 @@ class CTIOPush:
 	    print('Returning to watch directory')
 
     #Serial Ship to g2
-    def dwf_prepipe_serial_pushfile(self,file):
+    def serial_pushfile(self,file):
 	    file_name=file.split('/')[-1].split('.')[0]
 
 	    print('Shipping:'+self.jp2_dir+file_name+'.tar')
@@ -169,7 +169,7 @@ class CTIOPush:
 	    subprocess.run(command,shell=True)
 	    print('Returning to watch directory')
 
-    def dwf_prepipe_cleantemp(self,file):
+    def cleantemp(self,file):
 	    ##Clean Temperary files - unpacked .fits, bundler .tar and individual .jp2
 	    file_name=file.split('/')[-1].split('.')[0]
 	    fits_name=file_name+'.fits'
@@ -184,7 +184,7 @@ class CTIOPush:
 	    print('Cleaning: '+self.jp2_dir+'/')
 	    [os.remove(self.jp2_dir+'/'+jp2) for jp2 in os.listdir(self.jp2_dir) if jp2.endswith(".jp2")]
 
-    def dwf_prepipe_endofnight(self):
+    def process_endofnight(self):
 
 	    #Get list of files in remote target directory & list of files in local directory
 	    remote_list=subprocess.getoutput("ssh "+self.user+"@"+self.host+" 'ls "+self.target_dir+"*.tar'")
@@ -207,24 +207,24 @@ class CTIOPush:
 		    if(exp > self.exp_min):
 			    print('Processing: {} ({} of {})'.format(f, i, num_missing)
 			    self.packagefile(f)
-			    dwf_prepipe_serial_pushfile(f)
-			    dwf_prepipe_cleantemp(f)
+			    serial_pushfile(f)
+			    cleantemp(f)
         
     def process_parallel(filelist):
         for f in filelist:
 	        print('Processing: '+f)
 	        dwf_prepipe_validatefits(f,path_to_watch)
 	        packagefile(f,path_to_watch,Qs)
-	        dwf_prepipe_parallel_pushfile(f,path_to_watch)
-	        dwf_prepipe_cleantemp(f,path_to_watch)
+	        parallel_pushfile(f,path_to_watch)
+	        cleantemp(f,path_to_watch)
 	        
     def process_serial(filelist):
         file_to_send = filelist[-1]
         dwf_prepipe_validatefits(file_to_send,path_to_watch)
         print('Processing: '+file_to_send)
         packagefile(file_to_send,path_to_watch,Qs)
-        dwf_prepipe_serial_pushfile(file_to_send,path_to_watch)
-        dwf_prepipe_cleantemp(f,path_to_watch)
+        serial_pushfile(file_to_send,path_to_watch)
+        cleantemp(f,path_to_watch)
         
     def process_bundle(filelist):
         sorted_filelist=sorted(filelist)
@@ -244,11 +244,11 @@ class CTIOPush:
 	        packagefile(f,path_to_watch,Qs)
 	        #do all but the last scp in parallel; then force python to wait until the final transfer is complete
 	        if i < bundlesize:
-	            dwf_prepipe_parallel_pushfile(f,path_to_watch)
+	            parallel_pushfile(f,path_to_watch)
 	        else:
-		        dwf_prepipe_serial_pushfile(f,path_to_watch)
+		        serial_pushfile(f,path_to_watch)
 		        
-	        dwf_prepipe_cleantemp(f,path_to_watch)
+	        cleantemp(f,path_to_watch)
 
 def main():
 	
@@ -264,7 +264,7 @@ def main():
 	before = dict ([(f, None) for f in glob.glob(path_to_watch+'*.fits.fz')])
 
 	if(method == 'e'):
-		dwf_prepipe_endofnight(path_to_watch, exp_min, Qs)
+		process_endofnight(path_to_watch, exp_min, Qs)
 		return
 
 	while True:
