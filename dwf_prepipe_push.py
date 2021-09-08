@@ -231,7 +231,7 @@ class CTIOPush:
 	        
     def process_serial(filelist):
         file_to_send = filelist[-1]
-        dwf_prepipe_validatefits(file_to_send)
+        self.dwf_prepipe_validatefits(file_to_send)
         print('Processing: {}'.format(file_to_send))
         self.packagefile(file_to_send)
         #self.serial_pushfile(file_to_send)
@@ -241,8 +241,8 @@ class CTIOPush:
     def process_bundle(filelist):
         sorted_filelist=sorted(filelist)
         
-        if len(sorted_filelist) > nbundle:
-	        bundle=sorted_filelist[-1*nbundle:]
+        if len(sorted_filelist) > self.nbundle:
+	        bundle=sorted_filelist[-1*self.nbundle:]
         else:
 	        bundle=sorted_filelist
         
@@ -260,23 +260,20 @@ class CTIOPush:
 	        else:
 		        self.serial_pushfile(f)
 		        
-	        cleantemp(f,path_to_watch)
+	        self.cleantemp(f,path_to_watch)
 
 def main():
 	
 	args = parse_args()
 
-	path_to_watch=args.data_dir
-	Qs=args.Qs
-	method=args.method
-	nbundle=args.nbundle
+	Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
 	
 	#Begin Monitoring Directory
 	print('Monitoring:'+path_to_watch)
 	before = dict ([(f, None) for f in glob.glob(path_to_watch+'*.fits.fz')])
 
 	if(method == 'e'):
-		process_endofnight(path_to_watch)
+		Push.process_endofnight()
 		return
 
 	while True:
@@ -288,11 +285,11 @@ def main():
 		    print("Added: ", ", ".join (added))
 
 		    if method == 'p':
-			    process_parallel(added)
+			    Push.process_parallel(added)
             elif method == 's':
-			    process_serial(added)
+			    Push.process_serial(added)
             elif method == 'b':
-			    process_bundle(added)
+			    Push.process_bundle(added)
 		
 		if removed:
 		    print("Removed: ", ", ".join (removed))
