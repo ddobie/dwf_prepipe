@@ -97,7 +97,7 @@ class CTIOPush:
 			    valid=1
 
     #Package new raw .fits.fz file
-    def dwf_prepipe_packagefile(self, file_name):
+    def packagefile(self, file_name):
 	    file_name=file_name.split('/')[-1].split('.')[0]
 	    
 	    print('Unpacking: {}'.format(file_name))
@@ -210,7 +210,7 @@ class CTIOPush:
 		    exp=int(f.split('_')[1])
 		    if(exp > exp_min):
 			    print('Processing: {} ({} of {})'.format(f, i, num_missing)
-			    dwf_prepipe_packagefile(f,data_dir,Qs)
+			    packagefile(f,data_dir,Qs)
 			    dwf_prepipe_serial_pushfile(f,data_dir)
 			    dwf_prepipe_cleantemp(f,data_dir)
         
@@ -218,7 +218,7 @@ class CTIOPush:
         for f in filelist:
 	        print('Processing: '+f)
 	        dwf_prepipe_validatefits(f,path_to_watch)
-	        dwf_prepipe_packagefile(f,path_to_watch,Qs)
+	        packagefile(f,path_to_watch,Qs)
 	        dwf_prepipe_parallel_pushfile(f,path_to_watch)
 	        dwf_prepipe_cleantemp(f,path_to_watch)
 	        
@@ -226,7 +226,7 @@ class CTIOPush:
         file_to_send = filelist[-1]
         dwf_prepipe_validatefits(file_to_send,path_to_watch)
         print('Processing: '+file_to_send)
-        dwf_prepipe_packagefile(file_to_send,path_to_watch,Qs)
+        packagefile(file_to_send,path_to_watch,Qs)
         dwf_prepipe_serial_pushfile(file_to_send,path_to_watch)
         dwf_prepipe_cleantemp(f,path_to_watch)
         
@@ -245,7 +245,7 @@ class CTIOPush:
         for i, f in enumerate(bundle):
 	        print('Processing: '+f)
 	        dwf_prepipe_validatefits(f,path_to_watch)
-	        dwf_prepipe_packagefile(f,path_to_watch,Qs)
+	        packagefile(f,path_to_watch,Qs)
 	        #do all but the last scp in parallel; then force python to wait until the final transfer is complete
 	        if i < bundlesize:
 	            dwf_prepipe_parallel_pushfile(f,path_to_watch)
