@@ -126,22 +126,24 @@ def dwf_prepipe_endofnight(data_dir,exp_min,Qs):
 
 def main():
 	#Input Keyword Default Values
-	DWF_PID = "/home4/images/fits/2016B-0904/"
-	Qs_Def=0.000055
+	dir_def = "/home4/images/fits/2016B-0904/"
+	Qs_def=0.000055
 	method_def='p'
 	nbundle_def=4
-	exp_min=-1
+	exp_min_def=-1
+	
+	
 	#Parse Inputs
 	parser = argparse.ArgumentParser(description='DWF_Prepipe push script for raw data from CTIO', formatter_class=argparse.RawDescriptionHelpFormatter)
-	parser.add_argument('-d','--data_dir',metavar='DIRECTORY',type=str,default=DWF_PID,
+	parser.add_argument('-d','--data_dir',metavar='DIRECTORY',type=str,default=dir_def,
 		help='Directory where tarballs of compressed files are placed')
-	parser.add_argument('-q','--Qs',metavar='DIRECTORY',type=float,default=Qs_Def,
+	parser.add_argument('-q','--Qs',metavar='DIRECTORY',type=float,default=Qs_def,
 		help='Qstep for fits2jpeg compression')
 	parser.add_argument('--method',metavar='PROTOCOL',type=str,default=method_def,
 		help='File Transfer method:(s)erial, (p)arrallel, (b)undle, (l)ist, (e)nd of night')
 	parser.add_argument('--nbundle',metavar='NUMBER',type=int,default=nbundle_def,
 		help='Number of Files to bundle together')
-	parser.add_argument('--exp_min',metavar='NUMBER',type=int,default=exp_min,
+	parser.add_argument('--exp_min',metavar='NUMBER',type=int,default=exp_min_def,
 		help='Exposure Number Start for end of night file transfer catchup')
 
 	args = parser.parse_args()
@@ -150,6 +152,7 @@ def main():
 	Qs=args.Qs
 	method=args.method
 	nbundle=args.nbundle
+	
 	#Begin Monitoring Directory
 	print('Monitoring:'+path_to_watch)
 	before = dict ([(f, None) for f in glob.glob(path_to_watch+'*.fits.fz')])
