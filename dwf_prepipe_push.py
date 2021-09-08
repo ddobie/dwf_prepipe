@@ -112,14 +112,17 @@ def dwf_prepipe_endofnight(data_dir,exp_min,Qs):
 	sent_files.sort(reverse=True)
 
 	missing=[f for f in obs_list if not f in sent_files]
+	num_missing = len(missing)
 
 	print('Starting end of night transfers for general completion')
 	print('Missing Files: '+str(len(missing))+'/'+str(len(obs_list))+' ('+str(len(sent_files))+' sent)')
+	
+	
 
-	for f in missing:
+	for i, f in enumerate(missing):
 		exp=int(f.split('_')[1])
 		if(exp > exp_min):
-			print('Processing: '+f)
+			print('Processing: {} ({} of {})'.format(f, i, num_missing)
 			dwf_prepipe_packagefile(f,data_dir,Qs)
 			dwf_prepipe_serial_pushfile(f,data_dir)
 			dwf_prepipe_cleantemp(f,data_dir)
