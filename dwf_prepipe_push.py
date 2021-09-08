@@ -10,122 +10,7 @@ import argparse
 import subprocess
 import astropy.io.fits as pyfits
 
-def dwf_prepipe_validatefits(file_name,data_dir):
-	warnings.filterwarnings('error','.*File may have been truncated:.*',UserWarning)
-	valid=0
-	while(not valid):
-		try:
-			test=pyfits.open(file_name)
-		except OSError:
-			print('OS Error:')
-			print(file_name+' still writing ...')
-			time.sleep(3)
-		except UserWarning:
-			print('User Warning: ')
-			print(file_name+' still writing ...')
-			time.sleep(0.5)
-		except IOError:
-			print('IO Error:')
-			print(file_name+' still writing ...')
-			time.sleep(0.5)
-		else:
-			print(file_name+' pass!')
-			valid=1
 
-#Package new raw .fits.fz file
-def dwf_prepipe_packagefile(file,data_dir,Qs):
-	file_name=file.split('/')[-1].split('.')[0]
-	jp2_dir=data_dir+"jp2/"
-	print('Unpacking:'+file_name)
-	print(file_name)
-	print(data_dir+file_name+'.fits.fz')
-	subprocess.run(['funpack',data_dir+file_name+'.fits.fz'])
-	if not os.path.isdir(jp2_dir+file_name):
-		print('Creating Directory: '+jp2_dir+file_name)
-		os.makedirs(jp2_dir+file_name)
-	print('Compressing:'+file_name)
-	subprocess.run(['time','f2j_DECam','-i',data_dir+file_name+'.fits','-o',jp2_dir+file_name+'/'+file_name+'.jp2','Qstep='+str(Qs),'-num_threads',str(1)])
-	print('Packaging:'+jp2_dir+file_name+'.tar')
-	subprocess.run(['tar','-cf',jp2_dir+file_name+'.tar','-C',jp2_dir+file_name+'/','.'])
-
-#Parallel Ship file to G2
-def dwf_prepipe_parallel_pushfile(file,data_dir):
-	file_name=file.split('/')[-1].split('.')[0]
-
-	#g2 configuration
-	user='fstars'
-	host='ozstar.swin.edu.au'
-	reciever=user+'@'+host
-	push_dir='/fred/oz100/fstars/push/'
-	target_dir='/fred/oz100/fstars/DWF_Unpack_Test/push/'
-
-	jp2_dir=data_dir+"jp2/"
-
-	print('Shipping:'+jp2_dir+file_name+'.tar')
-	command="scp "+jp2_dir+file_name+".tar "+reciever+":"+push_dir+"; ssh "+reciever+" 'mv "+push_dir+file_name+".tar "+target_dir+"' ; rm "+jp2_dir+file_name+".tar "
-	subprocess.Popen(command,shell=True)
-	print('Returning to watch directory')
-
-#Serial Ship to g2
-def dwf_prepipe_serial_pushfile(file,data_dir):
-	file_name=file.split('/')[-1].split('.')[0]
-	#g2 configuration
-	user='fstars'
-	host='ozstar.swin.edu.au'
-	reciever=user+'@'+host
-	push_dir='/fred/oz100/fstars/push/'
-	target_dir='/fred/oz100/fstars/DWF_Unpack_Test/push/'
-
-	jp2_dir=data_dir+"jp2/"
-
-	print('Shipping:'+jp2_dir+file_name+'.tar')
-	command="scp "+jp2_dir+file_name+".tar "+reciever+":"+push_dir+"; ssh "+reciever+" 'mv "+push_dir+file_name+".tar "+target_dir+"'; rm "+jp2_dir+file_name+".tar "
-	subprocess.run(command,shell=True)
-	print('Returning to watch directory')
-
-def dwf_prepipe_cleantemp(file,data_dir):
-	##Clean Temperary files - unpacked .fits, bundler .tar and individual .jp2
-	file_name=file.split('/')[-1].split('.')[0]
-	jp2_dir=data_dir+"jp2/"+file_name
-	fits_name=file_name+'.fits'
-	#remove funpacked .fits file
-	print('Removing: '+data_dir+fits_name)
-	os.remove(data_dir+fits_name)
-	#remove excess .tar
-	#print('Removing: '+jp2_dir+file_name+'.tar')
-	#os.remove(jp2_dir+'.tar')
-	#Remove .jp2 files
-	print('Cleaning: '+jp2_dir+'/')
-	[os.remove(jp2_dir+'/'+jp2) for jp2 in os.listdir(jp2_dir) if jp2.endswith(".jp2")]
-
-def dwf_prepipe_endofnight(data_dir,exp_min,Qs):
-	user='fstars'
-	host='ozstar.swin.edu.au'
-	target_dir='/fred/oz100/fstars/DWF_Unpack_Test/push/'
-
-	#Get list of files in remote target directory & list of files in local directory
-	remote_list=subprocess.getoutput("ssh "+user+"@"+host+" 'ls "+target_dir+"*.tar'")
-	sent_files=[file.split('/')[-1].split('.')[0] for file in remote_list.splitlines() if file.endswith(".tar")]
-	obs_list=[f.split('/')[-1].split('.')[0] for f in glob.glob(data_dir+'*.fits.fz')]
-
-	obs_list.sort(reverse=True)
-	sent_files.sort(reverse=True)
-
-	missing=[f for f in obs_list if not f in sent_files]
-	num_missing = len(missing)
-
-	print('Starting end of night transfers for general completion')
-	print('Missing Files: '+str(len(missing))+'/'+str(len(obs_list))+' ('+str(len(sent_files))+' sent)')
-	
-	
-
-	for i, f in enumerate(missing):
-		exp=int(f.split('_')[1])
-		if(exp > exp_min):
-			print('Processing: {} ({} of {})'.format(f, i, num_missing)
-			dwf_prepipe_packagefile(f,data_dir,Qs)
-			dwf_prepipe_serial_pushfile(f,data_dir)
-			dwf_prepipe_cleantemp(f,data_dir)
 
 def parse_args():
     #Input Keyword Default Values
@@ -180,46 +65,194 @@ def parse_args():
 	
 	return args
 
+class CTIOPush:
+    def __init__(self, path_to_watch, Qs, push_method, nbundle):
+        self.path_to_watch = path_to_watch
+        self.Qs = Qs
+        self.push_method = push_method
+        self.nbundle = nbundle
+        
+        self.jp2_dir=os.path.join(self.path_to_watch, 'jp2')
+        
+    def dwf_prepipe_validatefits(self, file_name):
+	    warnings.filterwarnings('error','.*File may have been truncated:.*',UserWarning)
+	    valid=0
+	    while(not valid):
+		    try:
+			    test=pyfits.open(file_name)
+		    except OSError:
+			    print('OS Error:')
+			    print(file_name+' still writing ...')
+			    time.sleep(3)
+		    except UserWarning:
+			    print('User Warning: ')
+			    print(file_name+' still writing ...')
+			    time.sleep(0.5)
+		    except IOError:
+			    print('IO Error:')
+			    print(file_name+' still writing ...')
+			    time.sleep(0.5)
+		    else:
+			    print(file_name+' pass!')
+			    valid=1
 
-def process_parallel(filelist):
-    for f in filelist:
-	    print('Processing: '+f)
-	    dwf_prepipe_validatefits(f,path_to_watch)
-	    dwf_prepipe_packagefile(f,path_to_watch,Qs)
-	    dwf_prepipe_parallel_pushfile(f,path_to_watch)
-	    dwf_prepipe_cleantemp(f,path_to_watch)
+    #Package new raw .fits.fz file
+    def dwf_prepipe_packagefile(self, file_name):
+	    file_name=file_name.split('/')[-1].split('.')[0]
 	    
-def process_serial(filelist):
-    file_to_send = filelist[-1]
-    dwf_prepipe_validatefits(file_to_send,path_to_watch)
-    print('Processing: '+file_to_send)
-    dwf_prepipe_packagefile(file_to_send,path_to_watch,Qs)
-    dwf_prepipe_serial_pushfile(file_to_send,path_to_watch)
-    dwf_prepipe_cleantemp(f,path_to_watch)
-    
-def process_bundle(filelist):
-    sorted_filelist=sorted(filelist)
-    
-    if len(sorted_filelist) > nbundle:
-	    bundle=sorted_filelist[-1*nbundle:]
-    else:
-	    bundle=sorted_filelist
-    
-    print(['Bundling:'+str(f) for f in bundle])
-    
-    bundle_size = len(bundle)
-    
-    for i, f in enumerate(bundle):
-	    print('Processing: '+f)
-	    dwf_prepipe_validatefits(f,path_to_watch)
-	    dwf_prepipe_packagefile(f,path_to_watch,Qs)
-	    #do all but the last scp in parallel; then force python to wait until the final transfer is complete
-	    if i < bundlesize:
+	    print('Unpacking: {}'.format(file_name))
+	    print(file_name)
+	    fz_path = os.path.join(data_dir, '{}.fits.fz'.format(file_name))
+	    subprocess.run(['funpack', fz_path])
+	    
+	    jp2_dest = self.jp2_dir+file_name
+	    if not os.path.isdir(os.path.join(jp2_dest)):
+		    print('Creating Directory: {}'.format(jp2_dest))
+		    os.makedirs(p2_path)
+	    
+	    print('Compressing: {}'.format(file_name))
+	    fitsfile = file_name+'.fits'
+	    jp2file = file_name+'.jp2'
+	    
+	    subprocess.run(['time',
+	                    'f2j_DECam',
+	                    '-i',
+	                    os.path.join(self.data_dir, fitsfile),
+	                    '-o',
+	                    os.path.join(jp2_path, jp2file),
+	                    'Qstep={}'.format(self.Qs)),
+	                    '-num_threads',
+	                    '1']
+	                    )
+	    
+	    packaged_file = self.jp2_dir+file_name+'.tar'
+	    print('Packaging: {}'.format(packaged_file))
+	    subprocess.run(['tar',
+	                    '-cf',
+	                    packaged_file,
+	                    '-C',
+	                    jp2_path,
+	                    '.']
+	                    )
+
+    #Parallel Ship file to G2
+    def dwf_prepipe_parallel_pushfile(file,data_dir):
+	    file_name=file.split('/')[-1].split('.')[0]
+
+	    #g2 configuration
+	    user='fstars'
+	    host='ozstar.swin.edu.au'
+	    reciever=user+'@'+host
+	    push_dir='/fred/oz100/fstars/push/'
+	    target_dir='/fred/oz100/fstars/DWF_Unpack_Test/push/'
+
+	    jp2_dir=data_dir+"jp2/"
+
+	    print('Shipping:'+jp2_dir+file_name+'.tar')
+	    command="scp "+jp2_dir+file_name+".tar "+reciever+":"+push_dir+"; ssh "+reciever+" 'mv "+push_dir+file_name+".tar "+target_dir+"' ; rm "+jp2_dir+file_name+".tar "
+	    subprocess.Popen(command,shell=True)
+	    print('Returning to watch directory')
+
+    #Serial Ship to g2
+    def dwf_prepipe_serial_pushfile(file,data_dir):
+	    file_name=file.split('/')[-1].split('.')[0]
+	    #g2 configuration
+	    user='fstars'
+	    host='ozstar.swin.edu.au'
+	    reciever=user+'@'+host
+	    push_dir='/fred/oz100/fstars/push/'
+	    target_dir='/fred/oz100/fstars/DWF_Unpack_Test/push/'
+
+	    jp2_dir=data_dir+"jp2/"
+
+	    print('Shipping:'+jp2_dir+file_name+'.tar')
+	    command="scp "+jp2_dir+file_name+".tar "+reciever+":"+push_dir+"; ssh "+reciever+" 'mv "+push_dir+file_name+".tar "+target_dir+"'; rm "+jp2_dir+file_name+".tar "
+	    subprocess.run(command,shell=True)
+	    print('Returning to watch directory')
+
+    def dwf_prepipe_cleantemp(file,data_dir):
+	    ##Clean Temperary files - unpacked .fits, bundler .tar and individual .jp2
+	    file_name=file.split('/')[-1].split('.')[0]
+	    jp2_dir=data_dir+"jp2/"+file_name
+	    fits_name=file_name+'.fits'
+	    #remove funpacked .fits file
+	    print('Removing: '+data_dir+fits_name)
+	    os.remove(data_dir+fits_name)
+	    #remove excess .tar
+	    #print('Removing: '+jp2_dir+file_name+'.tar')
+	    #os.remove(jp2_dir+'.tar')
+	    #Remove .jp2 files
+	    print('Cleaning: '+jp2_dir+'/')
+	    [os.remove(jp2_dir+'/'+jp2) for jp2 in os.listdir(jp2_dir) if jp2.endswith(".jp2")]
+
+    def dwf_prepipe_endofnight(data_dir,exp_min,Qs):
+	    user='fstars'
+	    host='ozstar.swin.edu.au'
+	    target_dir='/fred/oz100/fstars/DWF_Unpack_Test/push/'
+
+	    #Get list of files in remote target directory & list of files in local directory
+	    remote_list=subprocess.getoutput("ssh "+user+"@"+host+" 'ls "+target_dir+"*.tar'")
+	    sent_files=[file.split('/')[-1].split('.')[0] for file in remote_list.splitlines() if file.endswith(".tar")]
+	    obs_list=[f.split('/')[-1].split('.')[0] for f in glob.glob(data_dir+'*.fits.fz')]
+
+	    obs_list.sort(reverse=True)
+	    sent_files.sort(reverse=True)
+
+	    missing=[f for f in obs_list if not f in sent_files]
+	    num_missing = len(missing)
+
+	    print('Starting end of night transfers for general completion')
+	    print('Missing Files: '+str(len(missing))+'/'+str(len(obs_list))+' ('+str(len(sent_files))+' sent)')
+	
+	
+
+	    for i, f in enumerate(missing):
+		    exp=int(f.split('_')[1])
+		    if(exp > exp_min):
+			    print('Processing: {} ({} of {})'.format(f, i, num_missing)
+			    dwf_prepipe_packagefile(f,data_dir,Qs)
+			    dwf_prepipe_serial_pushfile(f,data_dir)
+			    dwf_prepipe_cleantemp(f,data_dir)
+        
+    def process_parallel(filelist):
+        for f in filelist:
+	        print('Processing: '+f)
+	        dwf_prepipe_validatefits(f,path_to_watch)
+	        dwf_prepipe_packagefile(f,path_to_watch,Qs)
 	        dwf_prepipe_parallel_pushfile(f,path_to_watch)
-	    else:
-		    dwf_prepipe_serial_pushfile(f,path_to_watch)
-		    
-	    dwf_prepipe_cleantemp(f,path_to_watch)
+	        dwf_prepipe_cleantemp(f,path_to_watch)
+	        
+    def process_serial(filelist):
+        file_to_send = filelist[-1]
+        dwf_prepipe_validatefits(file_to_send,path_to_watch)
+        print('Processing: '+file_to_send)
+        dwf_prepipe_packagefile(file_to_send,path_to_watch,Qs)
+        dwf_prepipe_serial_pushfile(file_to_send,path_to_watch)
+        dwf_prepipe_cleantemp(f,path_to_watch)
+        
+    def process_bundle(filelist):
+        sorted_filelist=sorted(filelist)
+        
+        if len(sorted_filelist) > nbundle:
+	        bundle=sorted_filelist[-1*nbundle:]
+        else:
+	        bundle=sorted_filelist
+        
+        print(['Bundling:'+str(f) for f in bundle])
+        
+        bundle_size = len(bundle)
+        
+        for i, f in enumerate(bundle):
+	        print('Processing: '+f)
+	        dwf_prepipe_validatefits(f,path_to_watch)
+	        dwf_prepipe_packagefile(f,path_to_watch,Qs)
+	        #do all but the last scp in parallel; then force python to wait until the final transfer is complete
+	        if i < bundlesize:
+	            dwf_prepipe_parallel_pushfile(f,path_to_watch)
+	        else:
+		        dwf_prepipe_serial_pushfile(f,path_to_watch)
+		        
+	        dwf_prepipe_cleantemp(f,path_to_watch)
 
 def main():
 	
