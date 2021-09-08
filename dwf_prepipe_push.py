@@ -74,6 +74,22 @@ class CTIOPush:
         
         self.jp2_dir=os.path.join(self.path_to_watch, 'jp2')
         
+        self.set_g2_config()
+        
+        
+    def set_g2_config(self,
+                      user='fstars',
+                      host='ozstar.swin.edu.au',
+                      push_dir=None,
+                      target_dir=None
+                      ):
+        
+        self.user = user
+	    self.host = host
+	    self.reciever = '{}@{}'.format(user, host)
+	    self.push_dir=push_dir
+	    self.target_dir=target_dir
+        
     def dwf_prepipe_validatefits(self, file_name):
 	    warnings.filterwarnings('error','.*File may have been truncated:.*',UserWarning)
 	    valid=0
