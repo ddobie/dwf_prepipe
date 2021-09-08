@@ -127,9 +127,9 @@ def dwf_prepipe_endofnight(data_dir,exp_min,Qs):
 			dwf_prepipe_serial_pushfile(f,data_dir)
 			dwf_prepipe_cleantemp(f,data_dir)
 
-def main():
-	#Input Keyword Default Values
-	dir_def = "/home4/images/fits/2016B-0904/"
+def parse_args():
+    #Input Keyword Default Values
+	dir_def = "/home4/images/fits/2019B-0253/"
 	Qs_def=0.000055
 	method_def='p'
 	nbundle_def=4
@@ -138,18 +138,51 @@ def main():
 	
 	#Parse Inputs
 	parser = argparse.ArgumentParser(description='DWF_Prepipe push script for raw data from CTIO', formatter_class=argparse.RawDescriptionHelpFormatter)
-	parser.add_argument('-d','--data_dir',metavar='DIRECTORY',type=str,default=dir_def,
-		help='Directory where tarballs of compressed files are placed')
-	parser.add_argument('-q','--Qs',metavar='DIRECTORY',type=float,default=Qs_def,
-		help='Qstep for fits2jpeg compression')
-	parser.add_argument('--method',metavar='PROTOCOL',type=str,default=method_def,
-		help='File Transfer method:(s)erial, (p)arrallel, (b)undle, (l)ist, (e)nd of night')
-	parser.add_argument('--nbundle',metavar='NUMBER',type=int,default=nbundle_def,
-		help='Number of Files to bundle together')
-	parser.add_argument('--exp_min',metavar='NUMBER',type=int,default=exp_min_def,
-		help='Exposure Number Start for end of night file transfer catchup')
+	
+	parser.add_argument('-d',
+	                    '--data_dir',
+	                    metavar='DIRECTORY',
+	                    type=str,
+	                    default=dir_def,
+	                    help='Directory where tarballs of compressed files are placed'
+	                    )
+	
+	parser.add_argument('-q',
+	                    '--Qs',
+	                    metavar='DIRECTORY',
+	                    type=float,
+	                    default=Qs_def,
+	                    help='Qstep for fits2jpeg compression'
+	                    )
+	
+	parser.add_argument('--method',
+	                    metavar='PROTOCOL',
+                        type=str,
+                        default=method_def,
+                        help='File Transfer method:(s)erial, (p)arrallel, (b)undle, (l)ist, (e)nd of night'
+                        )
+	
+	parser.add_argument('--nbundle',
+	                    metavar='NUMBER',
+                        type=int,
+                        default=nbundle_def,
+                        help='Number of Files to bundle together'
+                        )
+	
+	parser.add_argument('--exp_min',
+                        metavar='NUMBER',
+                        type=int,
+                        default=exp_min_def,
+                        help='Exposure Number Start for end of night file transfer catchup'
+                        )
 
 	args = parser.parse_args()
+	
+	return args
+
+def main():
+	
+	args = parse_args()
 
 	path_to_watch=args.data_dir
 	Qs=args.Qs
