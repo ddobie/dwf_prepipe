@@ -190,10 +190,11 @@ def process_parallel(filelist):
 	    dwf_prepipe_cleantemp(f,path_to_watch)
 	    
 def process_serial(filelist):
-    dwf_prepipe_validatefits(filelist[-1],path_to_watch)
-    print('Processing: '+filelist[-1])
-    dwf_prepipe_packagefile(filelist[-1],path_to_watch,Qs)
-    dwf_prepipe_serial_pushfile(filelist[-1],path_to_watch)
+    file_to_send = filelist[-1]
+    dwf_prepipe_validatefits(file_to_send,path_to_watch)
+    print('Processing: '+file_to_send)
+    dwf_prepipe_packagefile(file_to_send,path_to_watch,Qs)
+    dwf_prepipe_serial_pushfile(file_to_send,path_to_watch)
     dwf_prepipe_cleantemp(f,path_to_watch)
     
 def process_bundle(filelist):
