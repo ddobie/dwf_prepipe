@@ -93,7 +93,7 @@ class Prepipe:
         if ccdlist is None:
             ccdlist = list(map(str, range(1,60)))
 
-	    DECam_Root=file_name.split('.')[0]
+	    DECam_Root=
 
 	    #Untar new file
 	    print('Unpacking:\t {}'.format(file_name))
@@ -112,14 +112,18 @@ class Prepipe:
 	    print('Writing {} sbatch scripts for {}'.format(nscripts,file_name))
 	    
 	    for n in range(n_scripts):
-		    dwf_prepipe_sbatchccds(DECam_Root,DECam_Root+'_q'+str(n+1),ccdlist[n_per_ccd*n:(n+1)*n_per_ccd],sbatch_path,push_path, run_date)
+	        ccds = ccdlist[n_per_ccd*n:(n+1)*n_per_ccd]
+		    dwf_prepipe_sbatchccds(filename, script_num, ccds, sbatch_path,push_path, run_date)
 
     
 
         
         
     #Write Qsub Script & submit to queue
-    def dwf_prepipe_sbatchccds(filename_root,qroot,ccds,sbatch_path,push_path, run_date):
+    def dwf_prepipe_sbatchccds(self, filename, script_num, ccds, sbatch_path,push_path, run_date):
+        filename_root = file_name.split('.')[0]
+        qroot = DECam_Root+'_q'+str(n+1)
+        
 	    image_list=[filename_root+'_'+f+'.jp2' for f in ccds]
 
 	    sbatch_out_dir=os.path.join(sbatch_path,'out/')
