@@ -25,25 +25,28 @@ class Prepipe:
         self.run_date = run_date
     
     #Uncompress new file + create & submit assosciated sbatch scripts
-    def unpack(self, file_name, ccdlist = None):
+    def unpack(self, file_name, ccdlist=None, n_per_ccd=15):
         if ccdlist is None:
             ccdlist = list(map(str, range(1,60)))
 
 	    DECam_Root=file_name.split('.')[0]
 
 	    #Untar new file
-	    print('Unpacking:\t'+file_name)
+	    print('Unpacking:\t {}'.format(file_name))
+	    
 	    try:
 		    subprocess.check_call(['tar','-xf',push_path+file_name,'-C',untar_path])
 	    except subprocess.CalledProcessError:
 		    print(f"FAILED UN-TAR {file_name}. Skipping...")
 		    pass
+	    
 	    Exposure=DECam_Root.split('_')[1]
 
 	    #Create Qsub scripts for new file with n_per_ccd jobs per script
-	    n_per_ccd=15
+	    
 	    n_scripts=math.ceil(len(ccdlist)/n_per_ccd)
-	    print('Writing '+str(n_scripts)+' sbatch scripts for '+file_name)
+	    print('Writing {} sbatch scripts for {}'.format(nscripts,file_name))
+	    
 	    for n in range(n_scripts):
 		    dwf_prepipe_sbatchccds(DECam_Root,DECam_Root+'_q'+str(n+1),ccdlist[n_per_ccd*n:(n+1)*n_per_ccd],sbatch_path,push_path, run_date)
 
