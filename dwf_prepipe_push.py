@@ -10,6 +10,9 @@ import argparse
 import subprocess
 import astropy.io.fits as pyfits
 
+import datetime
+import logging
+
 
 
 def parse_args():
@@ -60,6 +63,16 @@ def parse_args():
                         default=exp_min_def,
                         help='Exposure Number Start for end of night file transfer catchup'
                         )
+    
+    parser.add_argument('--debug',
+                        action="store_true",
+                        help='Turn on debug output.'
+                        )
+    
+    parser.add_argument('--quiet',
+                        action="store_true",
+                        help='Turn off all non-essential debug output'
+                        )           
 
 	args = parser.parse_args()
 	
@@ -68,7 +81,7 @@ def parse_args():
 class CTIOPush:
     def __init__(self, path_to_watch, Qs, push_method, nbundle):
         self.logger = logging.getLogger('dwf_prepipe.push.CTIOPush')
-        self.logger.debug('Created CTIO instance')
+        self.logger.debug('Created CTIOPush instance')
         
         self.path_to_watch = path_to_watch
         self.Qs = Qs
@@ -155,24 +168,24 @@ class CTIOPush:
     def parallel_pushfile(self, file):
 	    file_name=file.split('/')[-1].split('.')[0]
 
-	    self.logger.info('Shipping:'+jp2_dir+file_name+'.tar')
+	    self.logger.info('Shipping: {}.tar'.format(os.path.join(self.jp2_dir,file_name))
 	    command="scp "+self.jp2_dir+file_name+".tar "+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"' ; rm "+self.jp2_dir+file_name+".tar "
 	    subprocess.Popen(command,shell=True)
-	    self.logger.info('Returning to watch directory')
+	    self.logger.info('Shipped. Returning to watch directory')
 
     #Serial Ship to g2
     def serial_pushfile(self,file):
 	    file_name=file.split('/')[-1].split('.')[0]
 
-	    self.logger.info('Shipping:'+self.jp2_dir+file_name+'.tar')
+	    self.logger.info('Shipping: {}.tar'.format(os.path.join(self.jp2_dir,file_name))
 	    command="scp "+self.jp2_dir+file_name+".tar "+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"'; rm "+self.jp2_dir+file_name+".tar "
 	    subprocess.run(command,shell=True)
-	    self.logger.info('Returning to watch directory')
+	    self.logger.info('Shipped. Returning to watch directory')
 	    
     def pushfile(self, file, parallel=False):
         file_name=file.split('/')[-1].split('.')[0]
 
-	    self.logger.info('Shipping:'+self.jp2_dir+file_name+'.tar')
+	    self.logger.info('Shipping: {}.tar'.format(os.path.join(self.jp2_dir,file_name))
 	    command="scp "+self.jp2_dir+file_name+".tar "+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"'; rm "+self.jp2_dir+file_name+".tar "
 	    if parallel:
 	        subprocess.Popen(command,shell=True)
@@ -185,14 +198,14 @@ class CTIOPush:
 	    fits_name=file_name+'.fits'
 	    
 	    #remove funpacked .fits file
-	    self.logger.info('Removing: '+self.data_dir+fits_name)
+	    self.logger.info('Removing: {}'.format(os.path.join(self.data_dir,fits_name)))
 	    os.remove(self.data_dir+fits_name)
 	    #remove excess .tar
 	    #print('Removing: '+jp2_dir+file_name+'.tar')
 	    #os.remove(jp2_dir+'.tar')
 	    #Remove .jp2 files
-	    self.logger.info('Cleaning: '+self.jp2_dir+'/')
-	    [os.remove(self.jp2_dir+'/'+jp2) for jp2 in os.listdir(self.jp2_dir) if jp2.endswith(".jp2")]
+	    self.logger.info('Cleaning: {}'.format(self.jp2_dir))
+	    [os.remove(os.path.join(self.jp2_dir,jp2)) for jp2 in os.listdir(self.jp2_dir) if jp2.endswith(".jp2")]
 
     def process_endofnight(self):
 
@@ -208,7 +221,7 @@ class CTIOPush:
 	    num_missing = len(missing)
 
 	    self.logger.info('Starting end of night transfers for general completion')
-	    self.logger.info('Missing Files: '+str(len(missing))+'/'+str(len(obs_list))+' ('+str(len(sent_files))+' sent)')
+	    self.logger.info('Missing {} of {} files ({}% successful)'.format(len(missing),len(obs_list),100*len(sent_files)/len(obs_list)))
 	
 	
 
@@ -217,13 +230,12 @@ class CTIOPush:
 		    if(exp > self.exp_min):
 			    self.logger.info('Processing: {} ({} of {})'.format(f, i, num_missing)
 			    self.packagefile(f)
-			    #self.serial_pushfile(f)
 			    self.pushfile(f)
 			    self.cleantemp(f)
         
     def process_parallel(filelist):
         for f in filelist:
-	        self.logger.info('Processing: '+f)
+	        self.logger.info('Processing: {}'.format((f))
 	        self.dwf_prepipe_validatefits(f)
 	        self.packagefile(f)
 	        self.pushfile(f, parallel=True)
@@ -234,7 +246,6 @@ class CTIOPush:
         self.dwf_prepipe_validatefits(file_to_send)
         self.logger.info('Processing: {}'.format(file_to_send))
         self.packagefile(file_to_send)
-        #self.serial_pushfile(file_to_send)
         self.pushfile(file_to_send)
         self.cleantemp(f)
         
@@ -246,12 +257,12 @@ class CTIOPush:
         else:
 	        bundle=sorted_filelist
         
-        self.logger.info(['Bundling:'+str(f) for f in bundle])
+        self.logger.info(['Bundling: {}'.format(f) for f in bundle])
         
         bundle_size = len(bundle)
         
         for i, f in enumerate(bundle):
-	        self.logger.info('Processing: '+f)
+	        self.logger.info('Processing: {}'.format(f))
 	        self.dwf_prepipe_validatefits(f)
 	        self.packagefile(f)
 	        #do all but the last scp in parallel; then force python to wait until the final transfer is complete
@@ -263,13 +274,20 @@ class CTIOPush:
 	        self.cleantemp(f,path_to_watch)
 
 def main():
+	start = datetime.datetime.now()
 	
 	args = parse_args()
+	
+	logfile = "prepipe_push_{}.log".format(
+        start.strftime("%Y%m%d_%H:%M:%S")
+    )
+	
+	logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
 	Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
 	
 	#Begin Monitoring Directory
-	self.logger.info('Monitoring:'+path_to_watch)
+	self.logger.info('Monitoring: {}'.format(path_to_watch))
 	before = dict ([(f, None) for f in glob.glob(path_to_watch+'*.fits.fz')])
 
 	if(method == 'e'):
@@ -282,7 +300,7 @@ def main():
 		removed = [f for f in before if not f in after]
 
 		if added:
-		    print("Added: ", ", ".join (added))
+		    logger.info("Added: {}".format(', '.join(added)))
 
 		    if method == 'p':
 			    Push.process_parallel(added)
@@ -292,7 +310,7 @@ def main():
 			    Push.process_bundle(added)
 		
 		if removed:
-		    print("Removed: ", ", ".join (removed))
+		    logger.info("Removed: ".format(', '.join(removed)))
 		before = after
 		time.sleep (1)
 if __name__ == '__main__':
