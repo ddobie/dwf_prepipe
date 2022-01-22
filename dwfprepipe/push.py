@@ -418,7 +418,52 @@ class CTIOPush:
             else:
                 self.pushfile(f)
                 
-            self.cleantemp(f,path_to_watch)
+            self.cleantemp(f,self.path_to_watch)
+    
+    def run(self):
+        """
+        Run
+        
+        Args:
+            None
+            
+        Returns:
+            None
+        """
+
+        self.logger.info("Now running!")
+        self.logger.info(f"Monitoring: {self.path_to_watch}")
+        
+        glob_str = str(self.path_to_watch)+'*.fits.fz'
+        
+        before = glob.glob(glob_str)
+        
+        if(self.method == 'end of night'):
+            Push.process_endofnight()
+            return
+
+        while True:
+            after = glob.glob(glob_str)
+            added = [f for f in after if not f in before]
+            removed = [f for f in before if not f in after]
+
+            if added:
+                logger.info("Added: {}".format(', '.join(added)))
+
+                if self.method == 'parallel':
+                    Push.process_parallel(added)
+                elif self.method == 'serial':
+                    Push.process_serial(added)
+                elif self.method == 'bundle':
+                    Push.process_bundle(added)
+            
+            if removed:
+                logger.info("Removed: ".format(', '.join(removed)))
+
+            before = after
+
+            time.sleep(1)
+        
 
 def main():
     start = datetime.datetime.now()
@@ -433,32 +478,9 @@ def main():
 
     Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
     
-    #Begin Monitoring Directory
-    self.logger.info('Monitoring: {}'.format(path_to_watch))
-    before = dict ([(f, None) for f in glob.glob(path_to_watch+'*.fits.fz')])
+    #Run
+    Push.run()
 
-    if(method == 'e'):
-        Push.process_endofnight()
-        return
-
-    while True:
-        after = dict ([(f, None) for f in glob.glob(path_to_watch+'*.fits.fz')])
-        added = [f for f in after if not f in before]
-        removed = [f for f in before if not f in after]
-
-        if added:
-            logger.info("Added: {}".format(', '.join(added)))
-
-            if method == 'p':
-                Push.process_parallel(added)
-            elif method == 's':
-                Push.process_serial(added)
-            elif method == 'b':
-                Push.process_bundle(added)
-        
-        if removed:
-            logger.info("Removed: ".format(', '.join(removed)))
-        before = after
-        time.sleep (1)
+    
 if __name__ == '__main__':
     main()
