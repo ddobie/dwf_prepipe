@@ -83,9 +83,9 @@ class Prepipe:
         self.res_name = res_name
         
         if res_name is None:
-	        self.res_str = ''
+            self.res_str = ''
         else:
-    	    self.res_str = '#SBATCH --reservation={}'.format(self.res_name)
+            self.res_str = '#SBATCH --reservation={}'.format(self.res_name)
     
     
     #Uncompress new file + create & submit assosciated sbatch scripts
@@ -93,27 +93,27 @@ class Prepipe:
         if ccdlist is None:
             ccdlist = list(map(str, range(1,60)))
 
-	    DECam_Root=
+        DECam_Root=
 
-	    #Untar new file
-	    print('Unpacking:\t {}'.format(file_name))
-	    
-	    try:
-		    subprocess.check_call(['tar','-xf',push_path+file_name,'-C',untar_path])
-	    except subprocess.CalledProcessError:
-		    print(f"FAILED UN-TAR {file_name}. Skipping...")
-		    pass
-	    
-	    Exposure=DECam_Root.split('_')[1]
+        #Untar new file
+        print('Unpacking:\t {}'.format(file_name))
+        
+        try:
+            subprocess.check_call(['tar','-xf',push_path+file_name,'-C',untar_path])
+        except subprocess.CalledProcessError:
+            print(f"FAILED UN-TAR {file_name}. Skipping...")
+            pass
+        
+        Exposure=DECam_Root.split('_')[1]
 
-	    #Create Qsub scripts for new file with n_per_ccd jobs per script
-	    
-	    n_scripts=math.ceil(len(ccdlist)/n_per_ccd)
-	    print('Writing {} sbatch scripts for {}'.format(nscripts,file_name))
-	    
-	    for n in range(n_scripts):
-	        ccds = ccdlist[n_per_ccd*n:(n+1)*n_per_ccd]
-		    dwf_prepipe_sbatchccds(filename, script_num, ccds, sbatch_path,push_path, run_date)
+        #Create Qsub scripts for new file with n_per_ccd jobs per script
+        
+        n_scripts=math.ceil(len(ccdlist)/n_per_ccd)
+        print('Writing {} sbatch scripts for {}'.format(nscripts,file_name))
+        
+        for n in range(n_scripts):
+            ccds = ccdlist[n_per_ccd*n:(n+1)*n_per_ccd]
+            dwf_prepipe_sbatchccds(filename, script_num, ccds, sbatch_path,push_path, run_date)
 
     
 
@@ -124,36 +124,36 @@ class Prepipe:
         filename_root = file_name.split('.')[0]
         qroot = DECam_Root+'_q'+str(n+1)
         
-	    image_list=[filename_root+'_'+f+'.jp2' for f in ccds]
+        image_list=[filename_root+'_'+f+'.jp2' for f in ccds]
 
-	    sbatch_out_dir=os.path.join(sbatch_path,'out/')
+        sbatch_out_dir=os.path.join(sbatch_path,'out/')
 
-	    sbatch_name=sbatch_path+qroot+'.sbatch'
+        sbatch_name=sbatch_path+qroot+'.sbatch'
 
-	    print('Creating Script: {} for CCDs {} to {}'.format(sbatch_name, min(ccds), max(ccds))
-	    
+        print('Creating Script: {} for CCDs {} to {}'.format(sbatch_name, min(ccds), max(ccds))
+        
         jobs_str_temp = '~/dwf_prepipe/dwf_prepipe_processccd.py -i {0} -d {1} &\n'
-	    for image in image_list:
-		    jobs_str += jobs_str_temp.format(image, self.run_date)
-	    
-	    
-	    
-	    sbatch_text = sbatch_template_text.format(qroot=qroot,
-	                                              qroot_path=qroot_path,
-	                                              walltime=self.walltime,
-	                                              nodes=self.nodes
-	                                              ppn=self.ppn
-	                                              mem=self.mem
-	                                              tmp=self.tmp
-	                                              res_str=self.res_str
-	                                              )
-	                                              
-	    
-	    sbatch_file = f.open(sbatch_name, 'w')
-	    sbatch_file.write(sbatch_text)
-	    sbatch_file.close()
-	    
-	    subprocess.run(['sbatch',sbatch_name])
+        for image in image_list:
+            jobs_str += jobs_str_temp.format(image, self.run_date)
+        
+        
+        
+        sbatch_text = sbatch_template_text.format(qroot=qroot,
+                                                  qroot_path=qroot_path,
+                                                  walltime=self.walltime,
+                                                  nodes=self.nodes
+                                                  ppn=self.ppn
+                                                  mem=self.mem
+                                                  tmp=self.tmp
+                                                  res_str=self.res_str
+                                                  )
+                                                  
+        
+        sbatch_file = f.open(sbatch_name, 'w')
+        sbatch_file.write(sbatch_text)
+        sbatch_file.close()
+        
+        subprocess.run(['sbatch',sbatch_name])
 
 def main():
     DWF_Push = "/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/"
@@ -167,7 +167,7 @@ def main():
     path_to_sbatch = args.push_dir+'sbatch/'
     before = dict ([(f, None) for f in os.listdir (path_to_watch)])
     run_date =args.run_date
-	#dwf_prepipe_unpack('DECam_00504110.tar',path_to_watch,path_to_untar,path_to_sbatch)
+    #dwf_prepipe_unpack('DECam_00504110.tar',path_to_watch,path_to_untar,path_to_sbatch)
     print('Monitoring Directory:'+path_to_watch)
     while 1:
         after = dict ([(f, None) for f in os.listdir (path_to_watch)])
