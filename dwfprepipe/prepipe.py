@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #example usage ./dwf_prepipe.py /fred/oz100/fstars/DWF_Unpack_Test/push/
-import os, time
+import os
+import time
 import math
 import sys
 import glob
@@ -8,7 +9,10 @@ import argparse
 import warnings
 import multiprocessing
 import subprocess
+
 import astropy.io.fits as pyfits
+
+from typing import Union
 
 ###############################################################
 ###     CHANGE RESIVATION NAME HERE IF NEEDED           ######
@@ -56,24 +60,60 @@ echo ------------------------------------------------------
 
 
 class Prepipe:
-    def __init__(self, path_to_watch, path_to_untar, path_to_sbatch, run_date, res_name):
+    def __init__(self,
+                 path_to_watch: str,
+                 path_to_untar: str,
+                 path_to_sbatch: str,
+                 run_date,
+                 res_name: Union[str, None] = None
+                 ):
+        """
+        Constructor method.
+        
+        Args:
+            path_to_watch:
+            path_to_untar:
+            path_to_sbatch:
+            run_date:
+            res_name:
+        
+        Returns:
+            None
+        """
+
         self.path_to_watch = path_to_watch
         self.path_to_untar = path_to_untar
         self.path_to_sbatch = path_to_sbatch
         self.run_date = run_date
         
-        self.initiate_sbatch_vars(res_name)
+        self.set_sbatch_vars(res_name)
         
         
-    def initiate_sbatch_vars(self,
-                             res_name,
-                             walltime='00:05:00',
-                             queue='bryan',
-                             nodes='1',
-                             ppn='16',
-                             mem='90G',
-                             tmp='4G',
-                             ):
+    def set_sbatch_vars(self,
+                        res_name: Union[str, None] = None,
+                        walltime: str ='00:05:00',
+                        queue: str ='bryan',
+                        nodes: int =1,
+                        ppn: int = 16,
+                        mem: str = '90G',
+                        tmp: str = '4G',
+                        ):
+        """
+        Set the variables to be used in the sbatch template
+        
+        Args:
+            res_name: 
+            walltime: 
+            queue: 
+            nodes: 
+            ppn: 
+            mem: 
+            tmp: 
+        
+        Returns:
+            None
+        """
+
         self.walltime = walltime
         self.queue = queue
         self.nodes = nodes
