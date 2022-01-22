@@ -17,7 +17,7 @@ from pathlib import Path
 
 
 def parse_args():
-    #Input Keyword Default Values
+    # Input Keyword Default Values
     dir_def = "/home4/images/fits/2019B-0253/"
     Qs_def=0.000055
     method_def='p'
@@ -25,7 +25,7 @@ def parse_args():
     exp_min_def=-1
     
     
-    #Parse Inputs
+    # Parse Inputs
     parser = argparse.ArgumentParser(description='DWF_Prepipe push script for raw data from CTIO', formatter_class=argparse.RawDescriptionHelpFormatter)
     
     parser.add_argument('-d',
@@ -243,76 +243,125 @@ class CTIOPush:
                         '.']
                         )
 
-    #Parallel Ship file to G2
-    def parallel_pushfile(self, file):
-        file_name=file.split('/')[-1].split('.')[0]
-
-        self.logger.info('Shipping: {}.tar'.format(os.path.join(self.jp2_dir,file_name))
-        command="scp "+self.jp2_dir+file_name+".tar "+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"' ; rm "+self.jp2_dir+file_name+".tar "
-        subprocess.Popen(command,shell=True)
-        self.logger.info('Shipped. Returning to watch directory')
-
-    #Serial Ship to g2
-    def serial_pushfile(self,file):
-        file_name=file.split('/')[-1].split('.')[0]
-
-        self.logger.info('Shipping: {}.tar'.format(os.path.join(self.jp2_dir,file_name))
-        command="scp "+self.jp2_dir+file_name+".tar "+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"'; rm "+self.jp2_dir+file_name+".tar "
-        subprocess.run(command,shell=True)
-        self.logger.info('Shipped. Returning to watch directory')
         
-    def pushfile(self, file, parallel=False):
-        file_name=file.split('/')[-1].split('.')[0]
+    def pushfile(self, filepath: Union[str, Path], parallel: bool = False):
+        """
+        Push a file to the destination
+        
+        Args:
+            filepath: Path to the file
+            parallel: Whether to push in parallel or serial
+        
+        Returns:
+            None
+        """
 
-        self.logger.info('Shipping: {}.tar'.format(os.path.join(self.jp2_dir,file_name))
-        command="scp "+self.jp2_dir+file_name+".tar "+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"'; rm "+self.jp2_dir+file_name+".tar "
+        filepath = Path(filepath)
+        
+        file_name=filepath.name
+        
+        tar_path = self.jp2_dir / file_name.with_suffix('.tar')
+
+        self.logger.info(f'Shipping: {tar_path}')
+        command="scp "+tar_path+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"'; rm "+tar_path
         if parallel:
             subprocess.Popen(command,shell=True)
         else:
             subprocess.run(command,shell=True)
 
-    def cleantemp(self,file):
-        ##Clean Temperary files - unpacked .fits, bundler .tar and individual .jp2
-        file_name=file.split('/')[-1].split('.')[0]
-        fits_name=file_name+'.fits'
+    def cleantemp(self, filepath: Union[str, Path]):
+        """
+        Remove the temporary unpacked .fits; bundler .tar;
+        and individual .jp2 files.
+        
+        Args:
+            filepath:
+            
+        Returns:
+            None
+        """
+
+        file_name=filepath.name
+        
+        fits_path = self.data_dir / file_name.with_suffix('.fits')
         
         #remove funpacked .fits file
-        self.logger.info('Removing: {}'.format(os.path.join(self.data_dir,fits_name)))
-        os.remove(self.data_dir+fits_name)
+        self.logger.info(f'Removing: {fits_path}')
+        os.remove(fits_path)
+        
         #remove excess .tar
         #print('Removing: '+jp2_dir+file_name+'.tar')
         #os.remove(jp2_dir+'.tar')
+        
         #Remove .jp2 files
+        jp2_path = self.jp2_dir / file_name.with_suffix('.jp2')
         self.logger.info('Cleaning: {}'.format(self.jp2_dir))
-        [os.remove(os.path.join(self.jp2_dir,jp2)) for jp2 in os.listdir(self.jp2_dir) if jp2.endswith(".jp2")]
+        for jp2 in self.jp2_dir.iterdir():
+            if jp2.suffix == ".jp2":
+                os.remove(self.jp2_dir / jp2)
+
 
     def process_endofnight(self):
+        """
+        Run end-of-night processing
+        
+        Args:
+            None
+        
+        Returns:
+            None
+        """
 
-        #Get list of files in remote target directory & list of files in local directory
-        remote_list=subprocess.getoutput("ssh "+self.user+"@"+self.host+" 'ls "+self.target_dir+"*.tar'")
-        sent_files=[file.split('/')[-1].split('.')[0] for file in remote_list.splitlines() if file.endswith(".tar")]
-        obs_list=[f.split('/')[-1].split('.')[0] for f in glob.glob(data_dir+'*.fits.fz')]
+        #Get list of files in remote target directory
+        # & list of files in local directory
+        get_file_command = f"ssh {self.user}@{self.host} ls {self.target_dir}*.tar"
+        remote_list=subprocess.getoutput(get_file_command)
+        
+        sent_files = []
+        for filepath in remote_list.splitlines():
+            if filepath.endswith(".tar"):
+                file_name = Path(filepath).stem
+                sent_files.append(file_name)
+        
+        obs_list = []
+        for f in glob.glob(self.data_dir+'*.fits.fz'):
+            obs = Path(f).stem
+            obs_list.append(obs)
 
         obs_list.sort(reverse=True)
         sent_files.sort(reverse=True)
 
         missing=[f for f in obs_list if not f in sent_files]
         num_missing = len(missing)
+        total_obs = len(obs_list)
+        perc = 100*len(sent_files)/total_obs
 
-        self.logger.info('Starting end of night transfers for general completion')
-        self.logger.info('Missing {} of {} files ({}% successful)'.format(len(missing),len(obs_list),100*len(sent_files)/len(obs_list)))
+        self.logger.info('Starting end of night transfers...')
+        self.logger.info(f'Missing {num_missing} of {total_obs}'
+                          ' files ({perc}% successful)'
+                         )
     
     
 
         for i, f in enumerate(missing):
-            exp=int(f.split('_')[1])
-            if(exp > self.exp_min):
-                self.logger.info('Processing: {} ({} of {})'.format(f, i, num_missing)
+            exp_num=int(f.split('_')[1])
+            if exp_num > self.exp_min:
+                self.logger.info(f'Processing: {f} ({i} of {num_missing})')
                 self.packagefile(f)
                 self.pushfile(f)
                 self.cleantemp(f)
         
-    def process_parallel(filelist):
+    def process_parallel(self, filelist: list):
+        """
+        Process a list of files in parallel
+        
+        Args:
+            filelist: List of files to process
+            
+        Returns:
+            None
+        """
+        
         for f in filelist:
             self.logger.info('Processing: {}'.format((f))
             self.dwf_prepipe_validatefits(f)
@@ -320,7 +369,16 @@ class CTIOPush:
             self.pushfile(f, parallel=True)
             self.cleantemp(f)
             
-    def process_serial(filelist):
+    def process_serial(self, filelist: list):
+        """
+        Process a list of files in serial
+        
+        Args:
+            filelist: List of files to process
+            
+        Returns:
+            None
+        """
         file_to_send = filelist[-1]
         self.dwf_prepipe_validatefits(file_to_send)
         self.logger.info('Processing: {}'.format(file_to_send))
@@ -328,7 +386,16 @@ class CTIOPush:
         self.pushfile(file_to_send)
         self.cleantemp(f)
         
-    def process_bundle(filelist):
+    def process_bundle(self, filelist: list):
+        """
+        Process a list of files as bundle
+        
+        Args:
+            filelist: List of files to process
+            
+        Returns:
+            None
+        """
         sorted_filelist=sorted(filelist)
         
         if len(sorted_filelist) > self.nbundle:
@@ -344,11 +411,12 @@ class CTIOPush:
             self.logger.info('Processing: {}'.format(f))
             self.dwf_prepipe_validatefits(f)
             self.packagefile(f)
-            #do all but the last scp in parallel; then force python to wait until the final transfer is complete
+            # do all but the last scp in parallel;
+            # then force python to wait until the final transfer is complete
             if i < bundlesize:
                 self.pushfile(f, parallel=True)
             else:
-                self.serial_pushfile(f)
+                self.pushfile(f)
                 
             self.cleantemp(f,path_to_watch)
 
