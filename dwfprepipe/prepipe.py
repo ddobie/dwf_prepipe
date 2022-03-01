@@ -61,9 +61,9 @@ echo ------------------------------------------------------
 
 class Prepipe:
     def __init__(self,
-                 path_to_watch: str,
-                 path_to_untar: str,
-                 path_to_sbatch: str,
+                 path_to_watch: Union[str, Path],
+                 path_to_untar: Union[str, Path],
+                 path_to_sbatch: Union[str, Path],
                  run_date,
                  res_name: Union[str, None] = None
                  ):
@@ -252,34 +252,6 @@ class Prepipe:
             before = after
             time.sleep(5)
         
-def main():
-    DWF_Push = "/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/"
-    parser = argparse.ArgumentParser(description='Handle File Ingests for the DWF pipeline', formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--push_dir',metavar='DIRECTORY',type=str,default=DWF_Push, help='Directory where tarballs of compressed files are placed')
-    parser.add_argument('--run_date', type=str, help='Date of the run night and data being unpacked')
-    #args = parser.parse_args()
-    args = parser.parse_args()
-    path_to_watch = args.push_dir
-    path_to_untar = args.push_dir+'untar/'
-    path_to_sbatch = args.push_dir+'sbatch/'
-    before = dict ([(f, None) for f in os.listdir (path_to_watch)])
-    run_date =args.run_date
-    #dwf_prepipe_unpack('DECam_00504110.tar',path_to_watch,path_to_untar,path_to_sbatch)
-    print('Monitoring Directory:'+path_to_watch)
-    while 1:
-        after = dict ([(f, None) for f in os.listdir (path_to_watch)])
-        added = [f for f in after if not f in before]
-        removed = [f for f in before if not f in after]
-
-        if added: print("Added: ", ", ".join (added))
-        if removed: print("Removed: ", ", ".join (removed))
-
-        for f in added:
-            dwf_prepipe_unpack(f,path_to_watch,path_to_untar,path_to_sbatch, run_date)
-
-        before = after
-        time.sleep (5)
-
 
 if __name__ == '__main__':
     main()
