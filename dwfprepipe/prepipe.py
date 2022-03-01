@@ -71,11 +71,11 @@ class Prepipe:
         Constructor method.
         
         Args:
-            path_to_watch:
-            path_to_untar:
+            path_to_watch: Directory to watch for new files.
+            path_to_untar: Directory to untar new files into.
             path_to_sbatch:
             run_date:
-            res_name:
+            res_name: Name of the ozstar reservation, defaults to None.
         
         Returns:
             None
@@ -91,9 +91,9 @@ class Prepipe:
         
     def set_sbatch_vars(self,
                         res_name: Union[str, None] = None,
-                        walltime: str ='00:05:00',
-                        queue: str ='bryan',
-                        nodes: int =1,
+                        walltime: str = '00:05:00',
+                        queue: str = 'bryan',
+                        nodes: int = 1,
                         ppn: int = 16,
                         mem: str = '90G',
                         tmp: str = '4G',
@@ -102,13 +102,13 @@ class Prepipe:
         Set the variables to be used in the sbatch template
         
         Args:
-            res_name: 
-            walltime: 
-            queue: 
-            nodes: 
+            res_name: Name of the ozstar reservation, defaults to None.
+            walltime: Walltime of each job, defaults to 5 minutes.
+            queue: Queue to use, defaults to "bryan".
+            nodes: Number of nodes to request, defaults to 1.
             ppn: 
-            mem: 
-            tmp: 
+            mem: Total memory to request, defaults to 90G.
+            tmp: Temporary memory to request, defaults to 4G.
         
         Returns:
             None
