@@ -79,13 +79,13 @@ class CTIOPush:
                       target_dir: Union[str, None] = None
                       ):
         """
-        Set the ssh variables and target/destination directories
+        Set the ssh variables and target/destination directories.
         
         Args:
-            user: account username
-            host: destination host
-            push_dir: directory to push
-            target_dir:
+            user: Account username.
+            host: Destination host
+            push_dir: Directory to push from.
+            target_dir: Directory to push to.
         
         Returns:
             None
@@ -130,10 +130,10 @@ class CTIOPush:
     #Package new raw .fits.fz file
     def packagefile(self, filepath: Union[str, Path]):
         """
-        Package a file ready for shipping
+        Package a file ready for shipping.
         
         Args:
-            filepath: path to the file
+            filepath: Path to the file to be packaged.
             
         Returns
             None
@@ -181,11 +181,11 @@ class CTIOPush:
         
     def pushfile(self, filepath: Union[str, Path], parallel: bool = False):
         """
-        Push a file to the destination
+        Push a file to the destination.
         
         Args:
-            filepath: Path to the file
-            parallel: Whether to push in parallel or serial
+            filepath: Path to the file to be pushed.
+            parallel: If `True`, use parallel push, else use serial push.
         
         Returns:
             None
@@ -210,7 +210,7 @@ class CTIOPush:
         and individual .jp2 files.
         
         Args:
-            filepath:
+            filepath: Path of the temp file to be cleaned.
             
         Returns:
             None
@@ -238,7 +238,7 @@ class CTIOPush:
 
     def process_endofnight(self):
         """
-        Run end-of-night processing
+        Run end-of-night processing.
         
         Args:
             None
@@ -288,10 +288,10 @@ class CTIOPush:
         
     def process_parallel(self, filelist: list):
         """
-        Process a list of files in parallel
+        Process a list of files in parallel.
         
         Args:
-            filelist: List of files to process
+            filelist: List of files to process.
             
         Returns:
             None
@@ -306,10 +306,10 @@ class CTIOPush:
             
     def process_serial(self, filelist: list):
         """
-        Process a list of files in serial
+        Process a list of files in serial.
         
         Args:
-            filelist: List of files to process
+            filelist: List of files to process.
             
         Returns:
             None
@@ -323,10 +323,10 @@ class CTIOPush:
         
     def process_bundle(self, filelist: list):
         """
-        Process a list of files as bundle
+        Process a list of files as bundle.
         
         Args:
-            filelist: List of files to process
+            filelist: List of files to process.
             
         Returns:
             None
