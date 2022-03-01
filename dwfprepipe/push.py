@@ -201,7 +201,12 @@ class CTIOPush:
         tar_path = self.jp2_dir / file_name.with_suffix('.tar')
 
         self.logger.info(f'Shipping: {tar_path}')
-        command="scp "+tar_path+self.reciever+":"+self.push_dir+"; ssh "+self.reciever+" 'mv "+self.push_dir+file_name+".tar "+self.target_dir+"'; rm "+tar_path
+        
+        command=f"scp {tar_path} {self.reciever}:{self.push_dir}; "
+                f"ssh {self.reciever} "
+                f"'mv {self.push_dir / file_name}.tar {self.target_dir}'; "
+                f"rm {tar_path}"
+        
         if parallel:
             subprocess.Popen(command,shell=True)
         else:
