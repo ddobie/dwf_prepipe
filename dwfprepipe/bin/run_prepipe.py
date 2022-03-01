@@ -59,4 +59,4 @@ if __name__ == '__main__':
                       args.res_name
                       )
     
-    prepipe.run()
+    prepipe.listen()

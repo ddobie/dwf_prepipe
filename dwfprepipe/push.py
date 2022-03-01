@@ -363,7 +363,7 @@ class CTIOPush:
                 
             self.cleantemp(f,self.path_to_watch)
     
-    def run(self):
+    def listen(self):
         """
         Run
         

@@ -260,7 +260,7 @@ class Prepipe:
         
         
 
-    def run(self):
+    def listen(self):
         self.logger.info("Now running!")
         self.logger.info(f"Monitoring: {self.path_to_watch}")
         

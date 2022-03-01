@@ -79,4 +79,4 @@ if __name__ == '__main__':
 
     Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
     
-    Push.run()
+    Push.listen()
