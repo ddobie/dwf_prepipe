@@ -128,8 +128,23 @@ class Prepipe:
             self.res_str = '#SBATCH --reservation={}'.format(self.res_name)
     
     
-    #Uncompress new file + create & submit assosciated sbatch scripts
-    def unpack(self, file_name, ccdlist=None, n_per_ccd=15):
+    def unpack(self,
+               file_name: Union[Path, str],
+               ccdlist: Union[List[int], None] = None,
+               n_per_ccd: int = 15
+               ):
+        """
+        Uncompress new file + create & submit assosciated sbatch scripts
+        
+        Args:
+            file_name: File to unpack
+            ccdlist: List of CCDs to process, defaults to None.
+            n_per_ccd: 
+            
+        Returns:
+            None
+        """
+
         if ccdlist is None:
             ccdlist = list(map(str, range(1,60)))
 
