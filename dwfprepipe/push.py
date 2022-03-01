@@ -394,11 +394,11 @@ class CTIOPush:
                 logger.info("Added: {}".format(', '.join(added)))
 
                 if self.method == 'parallel':
-                    Push.process_parallel(added)
+                    self.process_parallel(added)
                 elif self.method == 'serial':
-                    Push.process_serial(added)
+                    self.process_serial(added)
                 elif self.method == 'bundle':
-                    Push.process_bundle(added)
+                    self.process_bundle(added)
             
             if removed:
                 removed_str = ', '.join(removed)
