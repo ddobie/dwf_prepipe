@@ -107,7 +107,10 @@ class CTIOPush:
         Returns:
             None
         """
-        warnings.filterwarnings('error','.*File may have been truncated:.*',UserWarning)
+        warnings.filterwarnings('error',
+                                '.*File may have been truncated:.*',
+                                UserWarning
+                                )
         
         valid=False
         
@@ -142,18 +145,18 @@ class CTIOPush:
         filepath = Path(filepath)
         file_name = filepath.name
         
-        self.logger.info('Unpacking: {}'.format(file_name))
+        self.logger.info(f'Unpacking: {file_name}')
         
         fz_path = self.data_dir / file_name.with_suffix('.fits.fz')
         
         subprocess.run(['funpack', str(fz_path)])
         
         jp2_dest = self.jp2_dir / file_name
-        if not os.path.isdir(os.path.join(jp2_dest)):
-            self.logger.info('Creating Directory: {}'.format(jp2_dest))
-            os.makedirs(p2_path)
+        if not jp2_dest.is_dir():
+            self.logger.info(f'Creating Directory: {jp2_dest}')
+            jp2_dest.mkdir()
         
-        self.logger.info('Compressing: {}'.format(file_name))
+        self.logger.info(f'Compressing: {file_name}')
         fitsfile = file_name.with_suffix('.fits')
         jp2file = file_name.with_suffix('.jp2')
         
@@ -169,7 +172,7 @@ class CTIOPush:
                         )
         
         packaged_file = self.jp2_dir / file_name.with_suffix('.tar')
-        self.logger.info('Packaging: {}'.format(packaged_file))
+        self.logger.info(f'Packaging: {packaged_file}')
         subprocess.run(['tar',
                         '-cf',
                         str(packaged_file),
@@ -222,7 +225,7 @@ class CTIOPush:
         
         #remove funpacked .fits file
         self.logger.info(f'Removing: {fits_path}')
-        os.remove(fits_path)
+        fits_path.unlink()
         
         #remove excess .tar
         #print('Removing: '+jp2_dir+file_name+'.tar')
@@ -230,10 +233,10 @@ class CTIOPush:
         
         #Remove .jp2 files
         jp2_path = self.jp2_dir / file_name.with_suffix('.jp2')
-        self.logger.info('Cleaning: {}'.format(self.jp2_dir))
+        self.logger.info(f'Cleaning: {self.jp2_dir}')
         for jp2 in self.jp2_dir.iterdir():
             if jp2.suffix == ".jp2":
-                os.remove(self.jp2_dir / jp2)
+                jp2.unlink()
 
 
     def process_endofnight(self):
@@ -259,7 +262,7 @@ class CTIOPush:
                 sent_files.append(file_name)
         
         obs_list = []
-        for f in glob.glob(self.data_dir+'*.fits.fz'):
+        for f in self.data_dir.glob('*.fits.fz'):
             obs = Path(f).stem
             obs_list.append(obs)
 
@@ -298,7 +301,7 @@ class CTIOPush:
         """
         
         for f in filelist:
-            self.logger.info('Processing: {}'.format((f))
+            self.logger.info(f'Processing: {f}')
             self.dwf_prepipe_validatefits(f)
             self.packagefile(f)
             self.pushfile(f, parallel=True)
@@ -316,7 +319,7 @@ class CTIOPush:
         """
         file_to_send = filelist[-1]
         self.dwf_prepipe_validatefits(file_to_send)
-        self.logger.info('Processing: {}'.format(file_to_send))
+        self.logger.info(f'Processing: {file_to_send}')
         self.packagefile(file_to_send)
         self.pushfile(file_to_send)
         self.cleantemp(f)
@@ -338,12 +341,12 @@ class CTIOPush:
         else:
             bundle=sorted_filelist
         
-        self.logger.info(['Bundling: {}'.format(f) for f in bundle])
+        self.logger.info([f'Bundling: {f}' for f in bundle])
         
         bundle_size = len(bundle)
         
         for i, f in enumerate(bundle):
-            self.logger.info('Processing: {}'.format(f))
+            self.logger.info(f'Processing: {f}')
             self.dwf_prepipe_validatefits(f)
             self.packagefile(f)
             # do all but the last scp in parallel;
@@ -393,7 +396,8 @@ class CTIOPush:
                     Push.process_bundle(added)
             
             if removed:
-                logger.info("Removed: ".format(', '.join(removed)))
+                removed_str = ', '.join(removed)
+                logger.info(f"Removed: {removed_str}")
 
             before = after
 
