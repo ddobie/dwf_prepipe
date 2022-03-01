@@ -88,6 +88,8 @@ class Prepipe:
         
         self.set_sbatch_vars(res_name)
         
+        self.logger = logging.getLogger('dwf_prepipe.prepipe.Prepipe')
+        
         
     def set_sbatch_vars(self,
                         res_name: Union[str, None] = None,
@@ -151,12 +153,17 @@ class Prepipe:
         DECam_Root=
 
         #Untar new file
-        print('Unpacking:\t {}'.format(file_name))
+        self.logger.info(f'Unpacking: {file_name}')
         
         try:
-            subprocess.check_call(['tar','-xf',push_path+file_name,'-C',untar_path])
+            subprocess.check_call(['tar',
+                                   '-xf',
+                                   push_path+file_name,
+                                   '-C',
+                                   untar_path
+                                   ])
         except subprocess.CalledProcessError:
-            print(f"FAILED UN-TAR {file_name}. Skipping...")
+            self.logger.warning(f"FAILED UN-TAR {file_name}. Skipping...")
             pass
         
         Exposure=DECam_Root.split('_')[1]
@@ -164,11 +171,17 @@ class Prepipe:
         #Create Qsub scripts for new file with n_per_ccd jobs per script
         
         n_scripts=math.ceil(len(ccdlist)/n_per_ccd)
-        print('Writing {} sbatch scripts for {}'.format(nscripts,file_name))
+        self.logger.info(f'Writing {nscripts} sbatch scripts for {file_name}')
         
         for n in range(n_scripts):
             ccds = ccdlist[n_per_ccd*n:(n+1)*n_per_ccd]
-            dwf_prepipe_sbatchccds(filename, script_num, ccds, sbatch_path,push_path, run_date)
+            dwf_prepipe_sbatchccds(filename,
+                                   script_num,
+                                   ccds,
+                                   sbatch_path,
+                                   push_path,
+                                   run_date
+                                   )
 
     
 
@@ -185,7 +198,9 @@ class Prepipe:
 
         sbatch_name=sbatch_path+qroot+'.sbatch'
 
-        print('Creating Script: {} for CCDs {} to {}'.format(sbatch_name, min(ccds), max(ccds))
+        self.logger.info(f"Creating Script: {sbatch_name} "
+                         f"for CCDs {min(ccds)} to {max(ccds)}"
+                         )
         
         jobs_str_temp = '~/dwf_prepipe/dwf_prepipe_processccd.py -i {0} -d {1} &\n'
         for image in image_list:
