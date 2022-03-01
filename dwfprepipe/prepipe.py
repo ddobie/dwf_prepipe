@@ -225,6 +225,32 @@ class Prepipe:
         
         subprocess.run(['sbatch',sbatch_name])
 
+    def run(self):
+        self.logger.info("Now running!")
+        self.logger.info(f"Monitoring: {self.path_to_watch}")
+        
+        glob_str = str(self.path_to_watch)+'*.fits.fz'
+        
+        before = glob.glob(glob_str)
+        
+        while True:
+            after = glob.glob(glob_str)
+            added = [f for f in after if not f in before]
+            removed = [f for f in before if not f in after]
+
+            if added:
+                added_str = ", ".join(added)
+                self.logger.info("Added: {added_str}")
+            if removed:
+                removed_str = ", ".join(removed)
+                self.logger.info(f"Removed: {removed_str}")
+
+            for f in added:
+                self.unpack(f)
+               
+            before = after
+            time.sleep(5)
+        
 def main():
     DWF_Push = "/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/"
     parser = argparse.ArgumentParser(description='Handle File Ingests for the DWF pipeline', formatter_class=argparse.RawDescriptionHelpFormatter)
