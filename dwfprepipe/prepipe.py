@@ -9,8 +9,10 @@ import argparse
 import warnings
 import multiprocessing
 import subprocess
+import importlib.resources
 
 import astropy.io.fits as pyfits
+
 
 from typing import Union
 
@@ -85,6 +87,7 @@ class Prepipe:
         self.path_to_untar = path_to_untar
         self.path_to_sbatch = path_to_sbatch
         self.run_date = run_date
+        self.sbatch_out_dir= self.path_to_sbatch / 'out'
         
         self.set_sbatch_vars(res_name)
         
@@ -176,6 +179,47 @@ class Prepipe:
             ccds = ccdlist[n_per_ccd*script_num:(script_num+1)*n_per_ccd]
             dwf_prepipe_sbatchccds(filename, script_num, ccds)
 
+    def _write_sbatch(self,
+                      sbatch_name: Union[str, Path],
+                      qroot: str,
+                      jobs_str: str
+                      ):
+        """
+        Write the Qsub script
+        
+        Args:
+            sbatch_name: Path to write the sbatch file to.
+            qroot: Qsub root name.
+            jobs_str: String containing the jobs to run, one per line.
+        
+        Returns:
+            None
+        """
+        
+        qroot_path = self.sbatch_out_dir / qroot
+        
+        with importlib.resources.path(
+            "dwfprepipe.data", "sbatch_template.txt"
+        ) as sbatch_template_file: 
+            f = open(sbatch_template_file, "r")
+            sbatch_templ = f.read()
+        sbatch_text = sbatch_templ.format(qroot=qroot,
+                                          qroot_path=qroot_path,
+                                          walltime=self.walltime,
+                                          nodes=self.nodes
+                                          ppn=self.ppn
+                                          mem=self.mem
+                                          tmp=self.tmp
+                                          res_str=self.res_str
+                                          jobs_str=jobs_str
+                                          )
+                                          
+        sbatch_file = f.open(sbatch_name, 'w')
+        sbatch_file.write(sbatch_text)
+        sbatch_file.close()
+        
+        
+    
     def sbatchccds(self,
                    file_name: Path,
                    script_num: int,
@@ -195,8 +239,6 @@ class Prepipe:
         
         image_list=[f'{DECam_root}_{f}.jp2' for f in ccds]
 
-        sbatch_out_dir= self.path_to_sbatch / 'out'
-
         sbatch_name=sbatch_path / f'{qroot}.sbatch'
 
         self.logger.info(f"Creating Script: {sbatch_name} "
@@ -208,23 +250,15 @@ class Prepipe:
         for image in image_list:
             jobs_str += jobs_str_temp.format(image, self.run_date)
         
-        sbatch_text = sbatch_template_text.format(qroot=qroot,
-                                                  qroot_path=qroot_path,
-                                                  walltime=self.walltime,
-                                                  nodes=self.nodes
-                                                  ppn=self.ppn
-                                                  mem=self.mem
-                                                  tmp=self.tmp
-                                                  res_str=self.res_str
-                                                  jobs_str=jobs_str
-                                                  )
+        self._write_sbatch(sbatch_name, qroot, jobs_str)
+        
+        if sbatch_name.is_file():
+            subprocess.run(['sbatch', str(sbatch_name]))
+        else:
+            logger.critical(f"{sbatch_name} does not exist!")
                                                   
         
-        sbatch_file = f.open(sbatch_name, 'w')
-        sbatch_file.write(sbatch_text)
-        sbatch_file.close()
         
-        subprocess.run(['sbatch', sbatch_name])
 
     def run(self):
         self.logger.info("Now running!")
@@ -251,7 +285,3 @@ class Prepipe:
                
             before = after
             time.sleep(5)
-        
-
-if __name__ == '__main__':
-    main()
