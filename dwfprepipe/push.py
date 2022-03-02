@@ -244,7 +244,7 @@ class CTIOPush:
                 jp2.unlink()
 
 
-    def process_endofnight(self):
+    def process_endofnight(self, exp_min):
         """
         Run end-of-night processing.
         
@@ -288,7 +288,7 @@ class CTIOPush:
 
         for i, f in enumerate(missing):
             exp_num=int(f.split('_')[1])
-            if exp_num > self.exp_min:
+            if exp_num > exp_min:
                 self.logger.info(f'Processing: {f} ({i} of {num_missing})')
                 self.packagefile(f)
                 self.pushfile(f)

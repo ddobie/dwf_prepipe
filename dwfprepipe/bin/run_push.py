@@ -76,7 +76,10 @@ if __name__ == '__main__':
     )
     
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
-
+    
     Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
     
-    Push.listen()
+    if args.method == 'e' or args.method == 'end of night':
+        Push.process_endofnight(args.exp_min)
+    else:
+        Push.listen()
