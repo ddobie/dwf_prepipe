@@ -13,7 +13,8 @@ import importlib.resources
 
 import astropy.io.fits as pyfits
 
-from typing import Union
+from pathlib import Path
+from typing import Union, List
 
 
 
@@ -165,11 +166,11 @@ class Prepipe:
         sbatch_text = sbatch_templ.format(qroot=qroot,
                                           qroot_path=qroot_path,
                                           walltime=self.walltime,
-                                          nodes=self.nodes
-                                          ppn=self.ppn
-                                          mem=self.mem
-                                          tmp=self.tmp
-                                          res_str=self.res_str
+                                          nodes=self.nodes,
+                                          ppn=self.ppn,
+                                          mem=self.mem,
+                                          tmp=self.tmp,
+                                          res_str=self.res_str,
                                           jobs_str=jobs_str
                                           )
                                           
@@ -203,8 +204,10 @@ class Prepipe:
         self.logger.info(f"Creating Script: {sbatch_name} "
                          f"for CCDs {min(ccds)} to {max(ccds)}"
                          )
-        
-        jobs_str_temp = '~/dwf_prepipe/dwf_prepipe_processccd.py -i {0} -d {1} &\n'
+        with importlib.resources.path(
+            "dwfprepipe.bin", "prepipe_processccd.py"
+        ) as process_ccd_script:
+            jobs_str_temp = f'{process_ccd_script} -i {{0}} -d {{1}} &\n'
         jobs_str = ''
         for image in image_list:
             jobs_str += jobs_str_temp.format(image, self.run_date)
@@ -212,7 +215,7 @@ class Prepipe:
         self._write_sbatch(sbatch_name, qroot, jobs_str)
         
         if sbatch_name.is_file():
-            subprocess.run(['sbatch', str(sbatch_name]))
+            subprocess.run(['sbatch', str(sbatch_name)])
         else:
             logger.critical(f"{sbatch_name} does not exist!")
                                                   

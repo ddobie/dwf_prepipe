@@ -11,6 +11,7 @@ import astropy.io.fits as pyfits
 import datetime
 import logging
 from pathlib import Path
+from typing import Union
 
 
 class CTIOPush:
@@ -201,10 +202,11 @@ class CTIOPush:
 
         self.logger.info(f'Shipping: {tar_path}')
         
-        command=f"scp {tar_path} {self.reciever}:{self.push_dir}; "
+        command=(f"scp {tar_path} {self.reciever}:{self.push_dir}; "
                 f"ssh {self.reciever} "
                 f"'mv {self.push_dir / file_name}.tar {self.target_dir}'; "
                 f"rm {tar_path}"
+                )
         
         if parallel:
             subprocess.Popen(command,shell=True)
