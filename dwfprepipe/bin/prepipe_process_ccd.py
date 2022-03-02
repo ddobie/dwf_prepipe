@@ -181,7 +181,18 @@ def parse_args():
     parser.add_argument('--quiet',
                         action="store_true",
                         help='Turn off all non-essential debug output'
-                        )   
+                        )
+    parser.add_argument('--mask-path',
+                        type=str,
+                        default='/home/fstars/dwf_prepipe/masks',
+                        help='Path to DECam masks',
+                        )
+
+    parser.add_argument('--scamp-path',
+                        type=str,
+                        default='/home/fstars/scamp_gaia/bin/scamp',
+                        help='Path to scamp',
+                        )
                         
     args = parser.parse_args()
     
@@ -328,10 +339,21 @@ def main():
     subprocess.check_call(['cp',dest_dir+newname, dest_dir.replace("rawdata","workspace")+newname])
 
     #Call Danny's preprocess code for CCD reduction
-    subprocess.check_call(['python','/home/fstars/dwf_prepipe/dwf_prepipe_preprocess_new.py', \
-    "--input-frames="+dest_dir.replace("rawdata","workspace")+newname, \
-    "--flat-frames="+flat, "--bias-frames="+bias, "--badcol-mask=/home/fstars/dwf_prepipe/masks","--with-scamp-exec=/home/fstars/scamp_gaia/bin/scamp", \
-    f"--man-gaia=/fred/oz100/pipes/DWF_PIPE/GAIA_DR2/{Field}_gaia_dr2_LDAC.fits"] )
+    preprocess_path = importlib.resources.path("dwfprepipe.bin",
+                                               "prepipe_preprocess.py"
+                                               )
+    input_frames = dest_dir.replace("rawdata","workspace")+newname
+    man_gaia = f'fred/oz100/pipes/DWF_PIPE/GAIA_DR2/{Field}_gaia_dr2_LDAC.fits'
+    
+    subprocess.check_call(["python",
+                           f"{preprocess_path}",
+                           f"--input-frames={input_frames}"+,
+                           f"--flat-frames={flat}",
+                           f"--bias-frames={flat}",
+                           f"--badcol-mask={args.masks_path}",
+                           f"--with-scamp-exec={args.scamp_path}",
+                           f"--man-gaia={man_gaia}"
+                           ] )
 
     #Remove unescessary .jp2
     logger.info('Deleting: '+untar_path+file_name)
