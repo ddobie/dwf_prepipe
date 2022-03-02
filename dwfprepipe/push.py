@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-#-W error:"WARNING: File may have been truncated:*""
-#example usage ./dwf_prepipe.py /fred/oz100/fstars/DWF_Unpack_Test/push/
+
 import os, time
 import math
 import sys
@@ -75,8 +74,8 @@ class CTIOPush:
     def set_ssh_config(self,
                       user: str = 'fstars',
                       host: str = 'ozstar.swin.edu.au',
-                      push_dir: Union[str, None] = None,
-                      target_dir: Union[str, None] = None
+                      push_dir: Union[str, Path] = '/fred/oz100/fstars/push/',
+                      target_dir: Union[str, Path] = '/fred/oz100/fstars/DWF_Unpack_Test/push/'
                       ):
         """
         Set the ssh variables and target/destination directories.
@@ -84,8 +83,8 @@ class CTIOPush:
         Args:
             user: Account username.
             host: Destination host
-            push_dir: Directory to push from.
-            target_dir: Directory to push to.
+            push_dir: Directory to push to.
+            target_dir: Directory to move files to after push.
         
         Returns:
             None
@@ -94,8 +93,8 @@ class CTIOPush:
         self.user = user
         self.host = host
         self.reciever = f'{user}@{host}'
-        self.push_dir = push_dir
-        self.target_dir = target_dir
+        self.push_dir = Path(push_dir)
+        self.target_dir = Path(target_dir)
         
     def dwf_prepipe_validatefits(self, file_name: Union[str, Path]):
         """
@@ -312,22 +311,21 @@ class CTIOPush:
             self.pushfile(f, parallel=True)
             self.cleantemp(f)
             
-    def process_serial(self, filelist: list):
+    def process_serial(self, filename: Union[str, Path]):
         """
-        Process a list of files in serial.
+        Process a file in serial
         
         Args:
-            filelist: List of files to process.
+            filename: Path to file to be processed.
             
         Returns:
             None
         """
-        file_to_send = filelist[-1]
-        self.dwf_prepipe_validatefits(file_to_send)
-        self.logger.info(f'Processing: {file_to_send}')
-        self.packagefile(file_to_send)
-        self.pushfile(file_to_send)
-        self.cleantemp(f)
+        self.dwf_prepipe_validatefits(filename)
+        self.logger.info(f'Processing: {filename}')
+        self.packagefile(filename)
+        self.pushfile(filename)
+        self.cleantemp(filename)
         
     def process_bundle(self, filelist: list):
         """
@@ -346,7 +344,7 @@ class CTIOPush:
         else:
             bundle=sorted_filelist
         
-        self.logger.info([f'Bundling: {f}' for f in bundle])
+        self.logger.info(f"Bundling: {', '.join(bundle)}")
         
         bundle_size = len(bundle)
         
@@ -392,7 +390,7 @@ class CTIOPush:
                 if self.method == 'parallel':
                     self.process_parallel(added)
                 elif self.method == 'serial':
-                    self.process_serial(added)
+                    self.process_serial(added[-1])
                 elif self.method == 'bundle':
                     self.process_bundle(added)
             
