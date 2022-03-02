@@ -377,8 +377,7 @@ def main():
         logger.info("Prepipe Warning: No master flat detected! Looking for an individual flat..")
         checkflats=glob.glob(dest_dir+"domeflat."+Filter+"*" )
         if checkflats == []:
-            logger.info("Prepipe Error: No flats detected! Exiting ")
-            exit()
+            raise Exception("Prepipe Error: No flats detected! Exiting...")
     #Use the first in the list
     flat=checkflats[0]
 
@@ -387,8 +386,7 @@ def main():
         logger.info("Prepipe Warning: No master bias detected! Looking for an individual bias..")
         checkbias=glob.glob(dest_dir+"bias.*" )
         if checkbias==[]:
-            logger.info("Prepipe Error: No bias detected! Exiting ")
-            exit()
+            raise Exception("Prepipe Error: No bias detected! Exiting...")
     #Uuse the first in the list
     bias=checkbias[0]    
 
