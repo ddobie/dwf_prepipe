@@ -380,10 +380,6 @@ class CTIOPush:
         glob_str = str(self.path_to_watch)+'*.fits.fz'
         
         before = glob.glob(glob_str)
-        
-        if(self.method == 'end of night'):
-            Push.process_endofnight()
-            return
 
         while True:
             after = glob.glob(glob_str)
