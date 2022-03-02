@@ -13,15 +13,6 @@ import sys
 import astropy.io.fits as pyfits
 import astropy.units as u 
 
-
-
-#####################################################################
-###############      CHANGE DATE FOR IAMGES       ###################
-
-run_date = sys.argv[0]
-
-#####################################################################
-
 def check_path(path):
     """Check if path ends with a slash ('/'). Else, it adds a slash.
 
@@ -135,32 +126,98 @@ def get_shift_field(ut,ccd,exp,Field):
     else:
         return[sum(rashift)/len(rashift),sum(decshift)/len(decshift)]
 
-def main():
-    DWF_Push = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/'
-    use_local=1
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p',
+                        '--push_dir',
+                        metavar='DIRECTORY',
+                        type=str,
+                        default='/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/',
+                        help='Directory where tarballs of compressed '
+                             'files are placed'
+                        )
 
-    parser = argparse.ArgumentParser(description='DWF_Prepipe process for single compressed CCD', formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-p','--push_dir',metavar='DIRECTORY',type=str,default=DWF_Push,
-        help='Directory where taballs of compressed files are placed')
-    parser.add_argument('-l','--local',metavar='DIRECTORY',type=int,default=use_local,
-        help='Use node local storage for jpg to fits conversion? (1 or 0)')
-    parser.add_argument('-i','--input_file',type=str,help='input .jp2 file')
-    parser.add_argument('-d', '--input_date', type=str, help='date for files during run')
+    parser.add_argument('-l',
+                        '--local',
+                        metavar='DIRECTORY',
+                        type=bool,
+                        default=True,
+                        help='Use node local storage for jpg '
+                             'to fits conversion?'
+                        )
+
+    parser.add_argument('--local-dir',
+                        metavar='DIRECTORY',
+                        type=str,
+                        default='/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/untar/',
+                        help='Use node local storage for jpg '
+                             'to fits conversion? (1 or 0)'
+                        )
+                        
+    parser.add_argument('--photepipe-rawdir',
+                        metavar='DIRECTORY',
+                        type=str,
+                        default='/fred/oz100/pipes/arest/DECAM/DEFAULT/rawdata/',
+                        help=''
+                        )
+
+    parser.add_argument('-i',
+                        '--input_file',
+                        type=str,
+                        help='input .jp2 file'
+                        )
+                        
+    parser.add_argument('-d',
+                        '--input_date',
+                        type=str,
+                        help='date for files during run'
+                        )
+
+    parser.add_argument('--debug',
+                        action="store_true",
+                        help='Turn on debug output.'
+                        )
+    
+    parser.add_argument('--quiet',
+                        action="store_true",
+                        help='Turn off all non-essential debug output'
+                        )   
+                        
     args = parser.parse_args()
+    
+    return args
+    
+def main():
+    start = datetime.datetime.now()
+    
+    args = parse_args()
+    
+    logfile = "prepipe_push_{}.log".format(
+        start.strftime("%Y%m%d_%H:%M:%S")
+    )
+    
+    logger = get_logger(args.debug, args.quiet, logfile=logfile)
+    
+    args = parse_args()
 
     #Set local Directory and check to see if it exists
-    # local_dir=os.path.join(os.environ['JOBFS'],'dwf')
-    local_dir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/untar/'
+    local_dir = Path(args.local_dir)
     local_convert=args.local
 
-    if(local_convert):
-        if not os.path.isdir(local_dir):
-            print('Creating Directory: '+local_dir)
-            os.makedirs(local_dir)
+    if local_convert:
+        if not local_dir.is_dir():
+            logger.info(f'Creating Directory: {local_dir}')
+            local_dir.mkdir()
+    local_dir = str(local_dir)
 
 
 
-    photepipe_rawdir= check_path('/fred/oz100/pipes/arest/DECAM/DEFAULT/rawdata/')
+    photepipe_rawdir = Path(args.photepipe_rawdir)
+    if not photepipe_rawdir.is_dir():
+        logger.info(f'Creating Directory: {photepipe_rawdir}')
+        photepipe_rawdir.mkdir()
+    photepipe_rawdir = str(photepipe_rawdir)
+
     push_dir=args.push_dir
     untar_path=check_path(push_dir+'untar/')
 
@@ -170,17 +227,17 @@ def main():
 
     if(local_convert):
         #Move .jp2 to local directory
-        print('Moving '+untar_path+file_name+' to '+local_dir+file_name)
+        logger.info('Moving '+untar_path+file_name+' to '+local_dir+file_name)
         shutil.move(untar_path+file_name,local_dir+file_name)
         untar_path=local_dir
 
     #Uncompress Fits on local Directory
     uncompressed_fits=untar_path+DECam_Root+'.fits'
-    print('--------*****')
-    print(uncompressed_fits)
-    print('Uncompressing: '+file_name+' in path: '+untar_path)
-    print('--------*****')
-    print(['j2f_DECam','-i',untar_path+file_name,'-o',uncompressed_fits,'-num_threads',str(1)])
+    logger.info('--------*****')
+    logger.info(uncompressed_fits)
+    logger.info('Uncompressing: '+file_name+' in path: '+untar_path)
+    logger.info('--------*****')
+    logger.info(['j2f_DECam','-i',untar_path+file_name,'-o',uncompressed_fits,'-num_threads',str(1)])
     subprocess.run(['j2f_DECam','-i',untar_path+file_name,'-o',uncompressed_fits,'-num_threads',str(1)])
 
     #Extract nescessary information from file for naming scheme
@@ -213,34 +270,34 @@ def main():
 
     #Check to see if UT date & CCD Directories have been created
     if not os.path.isdir(ut_dir):
-        print('Creating Directory: '+ut_dir)
+        logger.info('Creating Directory: '+ut_dir)
         os.makedirs(ut_dir)
     else:
-        print('Directory Exists: '+ut_dir)
+        logger.info('Directory Exists: '+ut_dir)
 
     if not os.path.isdir(dest_dir):
-        print('Creating Directory: '+dest_dir)
+        logger.info('Creating Directory: '+dest_dir)
         os.makedirs(dest_dir)
     else:
-        print('Directory Exists: '+dest_dir)
+        logger.info('Directory Exists: '+dest_dir)
 
     #Same as above but for the $workspace
     if not os.path.isdir(ut_dir.replace("rawdata","workspace")):
-        print('Creating Directory: '+ut_dir.replace("rawdata","workspace"))
+        logger.info('Creating Directory: '+ut_dir.replace("rawdata","workspace"))
         os.makedirs(ut_dir.replace("rawdata","workspace"))
     else:
-        print('Directory Exists: '+ut_dir.replace("rawdata","workspace"))
+        logger.info('Directory Exists: '+ut_dir.replace("rawdata","workspace"))
 
     if not os.path.isdir(dest_dir.replace("rawdata","workspace")):
-        print('Creating Directory: '+dest_dir.replace("rawdata","workspace"))
+        logger.info('Creating Directory: '+dest_dir.replace("rawdata","workspace"))
         os.makedirs(dest_dir.replace("rawdata","workspace"))
     else:
-        print('Directory Exists: '+dest_dir.replace("rawdata","workspace"))
+        logger.info('Directory Exists: '+dest_dir.replace("rawdata","workspace"))
 
 
     #Move Uncompressed Fits File
-    print('Renaming '+file_name+' to '+newname)
-    print('And moving to: '+dest_dir)
+    logger.info('Renaming '+file_name+' to '+newname)
+    logger.info('And moving to: '+dest_dir)
     shutil.move(uncompressed_fits,dest_dir+newname)
 
 
@@ -248,20 +305,20 @@ def main():
     checkflats=glob.glob(dest_dir+"domeflat."+Filter+".master.*" )
 
     if checkflats==[]:
-        print("Prepipe Warning: No master flat detected! Looking for an individual flat..")
+        logger.info("Prepipe Warning: No master flat detected! Looking for an individual flat..")
         checkflats=glob.glob(dest_dir+"domeflat."+Filter+"*" )
         if checkflats == []:
-            print("Prepipe Error: No flats detected! Exiting ")
+            logger.info("Prepipe Error: No flats detected! Exiting ")
             exit()
     #Use the first in the list
     flat=checkflats[0]
 
     checkbias = glob.glob(dest_dir+"bias.master.*")
     if checkbias==[]:
-        print("Prepipe Warning: No master bias detected! Looking for an individual bias..")
+        logger.info("Prepipe Warning: No master bias detected! Looking for an individual bias..")
         checkbias=glob.glob(dest_dir+"bias.*" )
         if checkbias==[]:
-            print("Prepipe Error: No bias detected! Exiting ")
+            logger.info("Prepipe Error: No bias detected! Exiting ")
             exit()
     #Uuse the first in the list
     bias=checkbias[0]    
@@ -277,7 +334,7 @@ def main():
     f"--man-gaia=/fred/oz100/pipes/DWF_PIPE/GAIA_DR2/{Field}_gaia_dr2_LDAC.fits"] )
 
     #Remove unescessary .jp2
-    print('Deleting: '+untar_path+file_name)
+    logger.info('Deleting: '+untar_path+file_name)
     subprocess.run(['rm',untar_path+file_name])
 
 if __name__ == '__main__':
