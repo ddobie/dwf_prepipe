@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #example usage ./dwf_prepipe.py /fred/oz100/fstars/DWF_Unpack_Test/push/
 import os
+import re
 import time
 import math
 import sys
@@ -66,7 +67,7 @@ class Prepipe:
                  path_to_watch: Union[str, Path],
                  path_to_untar: Union[str, Path],
                  path_to_sbatch: Union[str, Path],
-                 run_date,
+                 run_date: str,
                  res_name: Union[str, None] = None
                  ):
         """
@@ -82,12 +83,15 @@ class Prepipe:
         Returns:
             None
         """
+        regexp_pattern = r"^(ut[0-9][0-9][0-1][0-9][0-3][0-9])$"
+        if not bool(re.match(regexp_pattern, run_date)):
+            raise Exception("Run date must be in the form utYYMMDD")
 
         self.path_to_watch = path_to_watch
         self.path_to_untar = path_to_untar
         self.path_to_sbatch = path_to_sbatch
         self.run_date = run_date
-        self.sbatch_out_dir= self.path_to_sbatch / 'out'
+        self.sbatch_out_dir = self.path_to_sbatch / 'out'
         
         self.set_sbatch_vars(res_name)
         
