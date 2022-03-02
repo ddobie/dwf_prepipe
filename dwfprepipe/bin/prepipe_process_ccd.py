@@ -41,12 +41,35 @@ def check_path(path):
 
 
 def check_wcs(ut,ccd,expnum):
-    pipeloop_out=subprocess.check_output(['pipeview.pl','-red',ut,ccd,'-stage','WCSNON','-id',str(expnum)],stderr=subprocess.STDOUT,universal_newlines=True)
+    pipeloop_out=subprocess.check_output(['pipeview.pl',
+                                          '-red',
+                                          ut,
+                                          ccd,
+                                          '-stage',
+                                          'WCSNON',
+                                          '-id',str(expnum)
+                                          ],
+                                          stderr=subprocess.STDOUT,
+                                          universal_newlines=True)
+
     wcs_val=pipeloop_out.splitlines()[9].strip(' \t\n\r').split(' ')[-1]
     return (wcs_val == 'X')
 
 def get_shift_ccd(ut,ccd,Field,expnum):
-    pipeview_out=subprocess.check_output(['pipeview.pl','-red',ut,ccd,'-stage','WCSNON','-wcs','-im',Field],stderr=subprocess.STDOUT,universal_newlines=True)
+    pipeview_out=subprocess.check_output(['pipeview.pl',
+                                          '-red',
+                                          ut,
+                                          ccd,
+                                          '-stage',
+                                          'WCSNON',
+                                          '-wcs',
+                                          '-im',
+                                          Field
+                                          ],
+                                          stderr=subprocess.STDOUT,
+                                          universal_newlines=True
+                                          )
+
     pipeview_out=pipeview_out.splitlines()[2:]
 
     rashift=[]
@@ -56,7 +79,8 @@ def get_shift_ccd(ut,ccd,Field,expnum):
     dec_close=[]
 
     for line in pipeview_out:
-        if((line.split()[0].split('.')[0] == Field) and (line.split()[1] == '1')):    #Checks Valid Line
+        #Checks Valid Line
+        if((line.split()[0].split('.')[0] == Field) and (line.split()[1] == '1')):    
             rashift.append(float(line.strip(' \t\n\r').split()[5]))
             decshift.append(float(line.strip(' \t\n\r').split()[6]))
             line_exp=line.split()[0].split('_')[0].split('.')[-1]
@@ -72,7 +96,20 @@ def get_shift_ccd(ut,ccd,Field,expnum):
         return[sum(rashift)/len(rashift),sum(decshift)/len(decshift)]
 
 def get_shift_exp(ut,ccd,exp,Field):
-    pipeview_out=subprocess.check_output(['pipeview.pl','-red',ut,'1-60','-stage','WCSNON','-wcs','-id',exp],stderr=subprocess.STDOUT,universal_newlines=True)
+    pipeview_out=subprocess.check_output(['pipeview.pl',
+                                          '-red',
+                                          ut,
+                                          '1-60',
+                                          '-stage',
+                                          'WCSNON',
+                                          '-wcs',
+                                          '-id',
+                                          exp
+                                          ],
+                                          stderr=subprocess.STDOUT,
+                                          universal_newlines=True
+                                          )
+
     pipeview_out=pipeview_out.splitlines()[1:]
 
     rashift=[]
@@ -82,7 +119,8 @@ def get_shift_exp(ut,ccd,exp,Field):
     dec_close=[]
 
     for line in pipeview_out:
-        if((line.split()[0].split('.')[0] == Field) and (line.split()[1] == '1')): #Checks Valid Line
+        #Checks Valid Line
+        if((line.split()[0].split('.')[0] == Field) and (line.split()[1] == '1')): 
             rashift.append(float(line.strip(' \t\n\r').split()[5]))
             decshift.append(float(line.strip(' \t\n\r').split()[6]))
 
@@ -100,7 +138,19 @@ def get_shift_exp(ut,ccd,exp,Field):
 
 
 def get_shift_field(ut,ccd,exp,Field):
-    pipeview_out=subprocess.check_output(['pipeview.pl','-red',ut,'1-60','-stage','WCSNON','-wcs','-im',Field],stderr=subprocess.STDOUT,universal_newlines=True)
+    pipeview_out=subprocess.check_output(['pipeview.pl',
+                                          '-red',
+                                          ut,
+                                          '1-60',
+                                          '-stage',
+                                          'WCSNON',
+                                          '-wcs',
+                                          '-im',
+                                          Field],
+                                          stderr=subprocess.STDOUT,
+                                          universal_newlines=True
+                                          )
+
     pipeview_out=pipeview_out.splitlines()[2:]
 
     rashift=[]
@@ -248,8 +298,16 @@ def main():
     logger.info(uncompressed_fits)
     logger.info('Uncompressing: '+file_name+' in path: '+untar_path)
     logger.info('--------*****')
-    logger.info(['j2f_DECam','-i',untar_path+file_name,'-o',uncompressed_fits,'-num_threads',str(1)])
-    subprocess.run(['j2f_DECam','-i',untar_path+file_name,'-o',uncompressed_fits,'-num_threads',str(1)])
+    uncompress_call = ['j2f_DECam',
+                       '-i',
+                       untar_path+file_name,
+                       '-o',
+                       uncompressed_fits,
+                       '-num_threads',
+                       str(1)
+                       ]
+    logger.info(" ".join(uncompress_call))
+    subprocess.run(uncompress_call)
 
     #Extract nescessary information from file for naming scheme
     exp=pyfits.getval(uncompressed_fits,"EXPNUM")
@@ -336,7 +394,11 @@ def main():
 
     #Copy the raw image to the workspace, so that all the products 
     #will be generated there.
-    subprocess.check_call(['cp',dest_dir+newname, dest_dir.replace("rawdata","workspace")+newname])
+    subprocess.check_call(['cp',
+                           dest_dir+newname,
+                           dest_dir.replace("rawdata","workspace")+newname
+                           ]
+                          )
 
     #Call Danny's preprocess code for CCD reduction
     preprocess_path = importlib.resources.path("dwfprepipe.bin",
