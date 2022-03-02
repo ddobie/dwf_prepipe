@@ -248,7 +248,7 @@ class CTIOPush:
         Run end-of-night processing.
         
         Args:
-            None
+            exp_min: The first exposure number to process.
         
         Returns:
             None
