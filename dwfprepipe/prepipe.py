@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#example usage ./dwf_prepipe.py /fred/oz100/fstars/DWF_Unpack_Test/push/
 import os
 import re
 import time
@@ -14,51 +13,7 @@ import importlib.resources
 
 import astropy.io.fits as pyfits
 
-
 from typing import Union
-
-###############################################################
-###     CHANGE RESIVATION NAME HERE IF NEEDED           ######
-res_name = 'dwf'
-#run_date = args.run_date
-#print(run_date)
-###############################################################
-
-sbatch_template_text = '''#!/bin/bash
-#SBATCH -J {qroot}
-#SBATCH -o {qroot_path}.stdout
-#SBATCH -e {qroot_path}.stderr
-#SBATCH --time={walltime}
-#SBATCH -A {ozstar_proj}
-#SBATCH --nodes={nodes}
-#SBATCH --ntasks-per-node={ppn}
-#SBATCH --mem={mem}
-#SBATCH --tmp={tmp}
-{res_str}
-
-echo ------------------------------------------------------
-echo Automated script by dwf_prepipe
-echo ------------------------------------------------------
-echo ------------------------------------------------------
-echo -n 'Job is running on node '; cat $SLURM_NODELIST
-echo ------------------------------------------------------
-echo SBATCH: sbatch is running on $SLURM_SUBMIT_HOST
-echo SBATCH: working directory is $SLURM_SUBMIT_DIR
-echo SBATCH: job identifier is $SLURM_JOB_ID
-echo SBATCH: job name is $SLURM_JOB_NAME
-
-echo ------------------------------------------------------
-echo Just in case, do the below:
-
-
-echo $HOST
-
-{jobs_str}
-
-wait
-
-echo ------------------------------------------------------
-'''
 
 
 
