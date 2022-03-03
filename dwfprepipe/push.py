@@ -25,10 +25,11 @@ class CTIOPush:
         Constructor method.
         
         Args:
-            path_to_watch:
-            Qs:
-            push_method:
-            nbundle:
+            path_to_watch: Path to directory containing files to push.
+            Qs: Compression ratio/number/???.
+            push_method: Method to push data with.
+            nbundle: Number of files to bundle together. Only relevant if 
+                `push_method` is set to `bundle`.
         
         Returns:
             None
@@ -258,7 +259,8 @@ class CTIOPush:
 
         #Get list of files in remote target directory
         # & list of files in local directory
-        get_file_command = f"ssh {self.user}@{self.host} ls {self.target_dir}*.tar"
+        get_file_command = f"ssh {self.user}@{self.host}"
+                           f"ls {self.target_dir}*.tar"
         remote_list=subprocess.getoutput(get_file_command)
         
         sent_files = []
@@ -281,8 +283,8 @@ class CTIOPush:
         perc = 100*len(sent_files)/total_obs
 
         self.logger.info('Starting end of night transfers...')
-        self.logger.info(f'Missing {num_missing} of {total_obs}'
-                          ' files ({perc}% successful)'
+        self.logger.info(f'Missing {num_missing} of {total_obs} '
+                          f'files ({perc}% successful)'
                          )
     
     
