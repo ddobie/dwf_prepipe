@@ -9,7 +9,7 @@ setup(
     author_email='ddobie@swin.edu.au',
     packages=find_packages(),
     version=dwfprepipe.__version__,
-    license='MIT'
+    license='MIT',
     description='Python module for DWF processing',
     install_requires=[],
     scripts=[
@@ -18,6 +18,6 @@ setup(
         "bin/prepipe_reprocess.py",
         "bin/run_prepipe.py",
         "bin/run_push.py",
-    ]
+    ],
     include_package_data=True
 )
