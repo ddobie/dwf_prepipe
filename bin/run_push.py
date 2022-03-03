@@ -1,5 +1,6 @@
 from dwfprepipe.push import CTIOPush
 from dwfprepipe.utils import get_logger
+import datetime
 
 import argparse
 
@@ -25,7 +26,6 @@ def parse_args():
     
     parser.add_argument('-q',
                         '--Qs',
-                        metavar='DIRECTORY',
                         type=float,
                         default=Qs_def,
                         help='Qstep for fits2jpeg compression'
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
     
     Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
-    
+    exit()
     if Push.method == 'end of night':
         Push.process_endofnight(args.exp_min)
     else:

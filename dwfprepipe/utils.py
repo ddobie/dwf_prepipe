@@ -49,6 +49,5 @@ def get_logger(debug, quiet, logfile=None):
         fh.setFormatter(formatter)
         logger.addHandler(fh)
     logger.setLevel(logging.DEBUG)
-    install_mp_handler(logger=logger)
 
     return logger

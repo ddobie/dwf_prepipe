@@ -83,7 +83,7 @@ class CTIOPush:
         
         Args:
             user: Account username.
-            host: Destination host
+            host: Destination host.
             push_dir: Directory to push to.
             target_dir: Directory to move files to after push.
         
@@ -102,7 +102,7 @@ class CTIOPush:
         Validate the fits file
         
         Args:
-            file_name: path to the fits file
+            file_name: path to the fits file.
         
         Returns:
             None
@@ -233,10 +233,6 @@ class CTIOPush:
         self.logger.info(f'Removing: {fits_path}')
         fits_path.unlink()
         
-        #remove excess .tar
-        #print('Removing: '+jp2_dir+file_name+'.tar')
-        #os.remove(jp2_dir+'.tar')
-        
         #Remove .jp2 files
         jp2_path = self.jp2_dir / file_name.with_suffix('.jp2')
         self.logger.info(f'Cleaning: {self.jp2_dir}')
@@ -258,8 +254,9 @@ class CTIOPush:
 
         #Get list of files in remote target directory
         # & list of files in local directory
-        get_file_command = f"ssh {self.user}@{self.host}"
-                           f"ls {self.target_dir}*.tar"
+        get_file_command = (f"ssh {self.user}@{self.host}"
+                            f"ls {self.target_dir}*.tar"
+                           )
         remote_list=subprocess.getoutput(get_file_command)
         
         sent_files = []
