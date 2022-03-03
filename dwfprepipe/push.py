@@ -41,7 +41,6 @@ class CTIOPush:
         valid_methods = {'s': 'serial',
                          'p': 'parallel',
                          'b': 'bundle',
-                         'l':'list',
                          'e':'end of night',
                          }
         self.logger = logging.getLogger('dwf_prepipe.push.CTIOPush')
