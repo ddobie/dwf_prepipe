@@ -10,6 +10,7 @@ import warnings
 import multiprocessing
 import subprocess
 import importlib.resources
+import logging
 
 import astropy.io.fits as pyfits
 
