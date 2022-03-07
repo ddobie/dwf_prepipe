@@ -251,5 +251,7 @@ class Prepipe:
 
                 self.unpack(f)
                
+            if not added:
+                time.sleep(5)
+            
             before = after
-            time.sleep(5)
