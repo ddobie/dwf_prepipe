@@ -16,6 +16,7 @@ import astropy.io.fits as pyfits
 
 from pathlib import Path
 from typing import Union, List
+from utils import wait_for_file
 
 
 
@@ -244,6 +245,10 @@ class Prepipe:
                 self.logger.info(f"Removed: {removed_str}")
 
             for f in added:
+                if not wait_for_file(f):
+                    self.logger.info(f'{f} not written in time! Skipping...')
+                    continue
+
                 self.unpack(f)
                
             before = after
