@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 import logging.config
+import time
 
 try:
     import colorlog
@@ -51,3 +52,36 @@ def get_logger(debug, quiet, logfile=None):
     logger.setLevel(logging.DEBUG)
 
     return logger
+
+def wait_for_file(filepath: Union[str, Path],
+                  wait_time=0.5: Union[int, float],
+                  max_wait=15: Union[int, float]
+                  ):
+    """
+    Check if a file is still being written, and if so, wait for it to finish.
+    
+    Args:
+        filepath: Path to the file of interest
+        wait_time: Time to wait between file size checks
+        max_wait: Maximum time to wait for the file to finish being written.
+    
+    Returns:
+        A bool that is True if the file has been written and False otherwise.
+    """
+    if type(filepath) == str:
+        filepath = Path(filepath)
+
+    waited_time = 0
+    fsize_old = filepath.stat().st_size
+
+    while True:
+        time.sleep(wait_time)
+        waited_time += wait_time
+
+        fsize_new = filepath.stat().st_size
+        if fsize_new == fsize_old:
+            return True
+        elif waited_time > max_wait:
+            return False
+
+        fsize_old = fsize_new
