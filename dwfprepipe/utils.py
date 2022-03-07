@@ -9,7 +9,23 @@ try:
 except ImportError:
     use_colorlog = False
 
-def get_logger(debug, quiet, logfile=None):
+def get_logger(debug: bool,
+               quiet: bool,
+               logfile: Optional[Union[str, Path]] = None
+               ):
+    """
+    Initiate a logger.
+    
+    Args:
+        debug: Set the logging level to debug.
+        quiet: Suppress all non-essential output by setting the logging level
+            to warning.
+        logfile: File to write the log to.
+    
+    Returns:
+        A logger.
+    """
+
     logger = logging.getLogger()
     s = logging.StreamHandler()
     if logfile is not None:
@@ -49,6 +65,7 @@ def get_logger(debug, quiet, logfile=None):
     if logfile is not None:
         fh.setFormatter(formatter)
         logger.addHandler(fh)
+
     logger.setLevel(logging.DEBUG)
 
     return logger
