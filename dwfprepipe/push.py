@@ -10,8 +10,10 @@ import astropy.io.fits as pyfits
 
 import datetime
 import logging
+
 from pathlib import Path
 from typing import Union
+from utils import wait_for_file
 
 
 class CTIOPush:
@@ -96,39 +98,6 @@ class CTIOPush:
         self.reciever = f'{user}@{host}'
         self.push_dir = Path(push_dir)
         self.target_dir = Path(target_dir)
-        
-    def dwf_prepipe_validatefits(self, file_name: Union[str, Path]):
-        """
-        Validate the fits file
-        
-        Args:
-            file_name: path to the fits file.
-        
-        Returns:
-            None
-        """
-        warnings.filterwarnings('error',
-                                '.*File may have been truncated:.*',
-                                UserWarning
-                                )
-        
-        valid=False
-        
-        while(not valid):
-            try:
-                test=pyfits.open(file_name)
-            except OSError:
-                self.logger.error('{} still writing...'.format(file_name))
-                time.sleep(3)
-            except UserWarning:
-                self.logger.error('{} still writing...'.format(file_name))
-                time.sleep(0.5)
-            except IOError:
-                self.logger.error('{} still writing...'.format(file_name))
-                time.sleep(0.5)
-            else:
-                self.logger.info('{} passes validation'.format(file_name))
-                valid=True
 
     #Package new raw .fits.fz file
     def packagefile(self, filepath: Union[str, Path]):
@@ -306,7 +275,11 @@ class CTIOPush:
         
         for f in filelist:
             self.logger.info(f'Processing: {f}')
-            self.dwf_prepipe_validatefits(f)
+
+            if not wait_for_file(f):
+                self.logger.info(f'{f} not written in time! Skipping...')
+                continue
+
             self.packagefile(f)
             self.pushfile(f, parallel=True)
             self.cleantemp(f)
@@ -321,8 +294,13 @@ class CTIOPush:
         Returns:
             None
         """
-        self.dwf_prepipe_validatefits(filename)
+
         self.logger.info(f'Processing: {filename}')
+
+        if not wait_for_file(f):
+            self.logger.info(f'{f} not written in time! Skipping...')
+            continue
+
         self.packagefile(filename)
         self.pushfile(filename)
         self.cleantemp(filename)
@@ -350,7 +328,11 @@ class CTIOPush:
         
         for i, f in enumerate(bundle):
             self.logger.info(f'Processing: {f}')
-            self.dwf_prepipe_validatefits(f)
+
+            if not wait_for_file(f):
+                self.logger.info(f'{f} not written in time! Skipping...')
+                continue
+
             self.packagefile(f)
             # do all but the last scp in parallel;
             # then force python to wait until the final transfer is complete
