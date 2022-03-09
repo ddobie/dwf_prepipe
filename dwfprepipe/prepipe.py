@@ -66,6 +66,11 @@ class Prepipe:
             raise PrepipeInitError("Problems found in the requested settings! "
                                    "Please address and try again."
                                    )
+        self.logger.info("Successfully initialised Prepipe.")
+        self.logger.info(f"Running with path_to_watch={self.path_to_watch}")
+        self.logger.info(f"Running with path_to_untar={self.path_to_untar}")
+        self.logger.info(f"Running with path_to_sbatch={self.path_to_sbatch}")
+        self.logger.info(f"Running with run_date={self.run_date}")
         
         
     def _validate_settings(self):
@@ -135,18 +140,26 @@ class Prepipe:
             None
         """
 
+        self.logger.info(f"Setting walltime to {walltime}")
         self.walltime = walltime
+        self.logger.info(f"Setting queue to {queue}")
         self.queue = queue
+        self.logger.info(f"Setting nodes to {nodes}")
         self.nodes = nodes
+        self.logger.info(f"Setting ppn to {ppn}")
         self.ppn = ppn
+        self.logger.info(f"Setting mem to {mem}")
         self.mem = mem
+        self.logger.info(f"Setting tmp to {tmp}")
         self.tmp = tmp
         self.res_name = res_name
         
         if res_name is None:
             self.res_str = ''
+            self.logger.warning("Warning: not using a reservation")
         else:
             self.res_str = '#SBATCH --reservation={}'.format(self.res_name)
+            self.logger.info(f"Setting walltime to {walltime}")
     
     
     def unpack(self,
