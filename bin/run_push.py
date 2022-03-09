@@ -6,8 +6,6 @@ import argparse
 
 def parse_args():
     # Input Keyword Default Values
-    dir_def = "/home4/images/fits/2019B-0253/"
-    Qs_def=0.000055
     method_def='p'
     nbundle_def=4
     exp_min_def=-1
@@ -21,21 +19,23 @@ def parse_args():
                         metavar='DIRECTORY',
                         type=str,
                         default=None,
-                        help='Directory where tarballs of compressed files are placed'
+                        help='Directory where tarballs of compressed '
+                             'files are placed.'
                         )
     
     parser.add_argument('-q',
                         '--Qs',
                         type=float,
                         default=None,
-                        help='Qstep for fits2jpeg compression'
+                        help='Qstep for fits2jpeg compression.'
                         )
     
     parser.add_argument('--method',
                         metavar='PROTOCOL',
                         type=str,
                         default=method_def,
-                        help='File Transfer method:(s)erial, (p)arallel, (b)undle, (l)ist, (e)nd of night'
+                        help='File Transfer method:(s)erial, (p)arallel, '
+                             '(b)undle, (l)ist, (e)nd of night.'
                         )
     
     parser.add_argument('--nbundle',
@@ -49,7 +49,8 @@ def parse_args():
                         metavar='NUMBER',
                         type=int,
                         default=exp_min_def,
-                        help='Exposure Number Start for end of night file transfer catchup'
+                        help='Exposure Number Start for end of night file '
+                             'transfer catchup.'
                         )
     
     parser.add_argument('--debug',
@@ -59,7 +60,7 @@ def parse_args():
     
     parser.add_argument('--quiet',
                         action="store_true",
-                        help='Turn off all non-essential debug output'
+                        help='Turn off all non-essential debug output.'
                         )           
 
     args = parser.parse_args()
