@@ -16,6 +16,13 @@ from typing import Union
 from dwfprepipe.utils import wait_for_file
 
 
+class CTIOPushInitError(Exception):
+    """
+    A defined error for a problem encountered in the CTIOPush initialisation
+    """
+    pass
+
+
 class CTIOPush:
     def __init__(self,
                  path_to_watch: Union[str, Path],
@@ -61,6 +68,12 @@ class CTIOPush:
         
         self.set_ssh_config()
         
+        valid_settings = self.validate_settings()
+        if not valid_settings:
+            raise CTIOPushInitError("Problems found in the requested "
+                                    "settings! Please address and try again."
+                                    )
+        
         self.logger.info("Successfully initiated CTIOPush instance')
         self.logger.info(f"Watching {self.path_to_watch}...")
         self.logger.info(f"Will transfer with {self.push_method} protocol...")
@@ -100,6 +113,18 @@ class CTIOPush:
                                  )
             return False
         
+        if not self.push_dir.is_dir():
+            self.logger.critical(f"The provided push directory, "
+                                 f"{self.push_dir}, does not exist!"
+                                 )
+            return False
+        
+        if not self.target_dir.is_dir():
+            self.logger.critical(f"The provided target directory, "
+                                 f"{self.target_dir}, does not exist!"
+                                 )
+            return False
+        
         return True
         
     def set_ssh_config(self,
@@ -123,10 +148,15 @@ class CTIOPush:
             None
         """
         
+        self.logger.debug(f"Setting user to {user}")
         self.user = user
+        self.logger.debug(f"Setting host to {host}")
         self.host = host
+        self.logger.debug(f"Setting reciever to {reciever}")
         self.reciever = f'{user}@{host}'
+        self.logger.debug(f"Setting push_dir to {push_dir}")
         self.push_dir = Path(push_dir)
+        self.logger.debug(f"Setting target_dir to {target_dir}")
         self.target_dir = Path(target_dir)
 
     #Package new raw .fits.fz file
