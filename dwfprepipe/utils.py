@@ -4,6 +4,8 @@ import logging.config
 import time
 from pathlib import Path
 
+from typing import Optional, Union
+
 try:
     import colorlog
     use_colorlog = True
@@ -72,8 +74,8 @@ def get_logger(debug: bool,
     return logger
 
 def wait_for_file(filepath: Union[str, Path],
-                  wait_time=0.5: Union[int, float],
-                  max_wait=15: Union[int, float]
+                  wait_time: Union[int, float] = 0.5,
+                  max_wait: Union[int, float] = 15
                   ):
     """
     Check if a file is still being written, and if so, wait for it to finish.
