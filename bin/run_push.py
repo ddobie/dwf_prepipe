@@ -1,8 +1,9 @@
+import datetime
+import os
+import argparse
+
 from dwfprepipe.push import CTIOPush
 from dwfprepipe.utils import get_logger
-import datetime
-
-import argparse
 
 def parse_args():
     # Input Keyword Default Values
