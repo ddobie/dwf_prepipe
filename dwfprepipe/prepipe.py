@@ -67,10 +67,10 @@ class Prepipe:
                                    "Please address and try again."
                                    )
         self.logger.info("Successfully initialised Prepipe.")
-        self.logger.info(f"Running with path_to_watch={self.path_to_watch}")
-        self.logger.info(f"Running with path_to_untar={self.path_to_untar}")
-        self.logger.info(f"Running with path_to_sbatch={self.path_to_sbatch}")
-        self.logger.info(f"Running with run_date={self.run_date}")
+        self.logger.debug(f"Running with path_to_watch={self.path_to_watch}")
+        self.logger.debug(f"Running with path_to_untar={self.path_to_untar}")
+        self.logger.debug(f"Running with path_to_sbatch={self.path_to_sbatch}")
+        self.logger.debugf"Running with run_date={self.run_date}")
         
         
     def _validate_settings(self):
@@ -140,17 +140,17 @@ class Prepipe:
             None
         """
 
-        self.logger.info(f"Setting walltime to {walltime}")
+        self.logger.debug(f"Setting walltime to {walltime}")
         self.walltime = walltime
-        self.logger.info(f"Setting queue to {queue}")
+        self.logger.debug(f"Setting queue to {queue}")
         self.queue = queue
-        self.logger.info(f"Setting nodes to {nodes}")
+        self.logger.debug(f"Setting nodes to {nodes}")
         self.nodes = nodes
-        self.logger.info(f"Setting ppn to {ppn}")
+        self.logger.debug(f"Setting ppn to {ppn}")
         self.ppn = ppn
-        self.logger.info(f"Setting mem to {mem}")
+        self.logger.debug(f"Setting mem to {mem}")
         self.mem = mem
-        self.logger.info(f"Setting tmp to {tmp}")
+        self.logger.debug(f"Setting tmp to {tmp}")
         self.tmp = tmp
         self.res_name = res_name
         
@@ -159,7 +159,7 @@ class Prepipe:
             self.logger.warning("Warning: not using a reservation")
         else:
             self.res_str = '#SBATCH --reservation={}'.format(self.res_name)
-            self.logger.info(f"Setting walltime to {walltime}")
+            self.logger.debug(f"Setting res_name to {res_name}")
     
     
     def unpack(self,
@@ -188,14 +188,17 @@ class Prepipe:
         #Untar new file
         self.logger.info(f'Unpacking: {file_name}')
         try:
-            subprocess.check_call(['tar',
-                                   '-xf',
-                                   push_path+file_name,
-                                   '-C',
-                                   untar_path
-                                   ])
+            subprocess_call = ['tar',
+                               '-xf',
+                               push_path+file_name,
+                               '-C',
+                               untar_path
+                               ]
+            self.logger.debug(f"Running {subprocess_call}"
+            subprocess.check_call(subprocess_call)
+            
         except subprocess.CalledProcessError:
-            self.logger.warning(f"FAILED UN-TAR {file_name}. Skipping...")
+            self.logger.critical(f"FAILED UN-TAR {file_name}. Skipping...")
             pass
         
         Exposure=DECam_Root.split('_')[1]
