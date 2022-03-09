@@ -19,6 +19,12 @@ from typing import Union, List
 from utils import wait_for_file
 
 
+class PrepipeInitError(Exception):
+    """
+    A defined error for a problem encountered in the Prepipe initialisation
+    """
+    pass
+
 
 class Prepipe:
     def __init__(self,
@@ -40,21 +46,69 @@ class Prepipe:
         
         Returns:
             None
+        
+        Raises:
+            PrepipeInitError: Problems found in the requested settings
         """
-        regexp_pattern = r"^(ut[0-9][0-9][0-1][0-9][0-3][0-9])$"
-        if not bool(re.match(regexp_pattern, run_date)):
-            raise Exception("Run date must be in the form utYYMMDD")
-
-        self.path_to_watch = path_to_watch
-        self.path_to_untar = path_to_untar
-        self.path_to_sbatch = path_to_sbatch
+        
+        self.logger = logging.getLogger('dwf_prepipe.prepipe.Prepipe')
+        
+        self.path_to_watch = Path(path_to_watch)
+        self.path_to_untar = Path(path_to_untar)
+        self.path_to_sbatch = Path(path_to_sbatch)
         self.run_date = run_date
         self.sbatch_out_dir = self.path_to_sbatch / 'out'
         
         self.set_sbatch_vars(res_name)
         
-        self.logger = logging.getLogger('dwf_prepipe.prepipe.Prepipe')
+        valid_settings = self._validate_settings()
+        if not valid_settings:
+            raise PrepipeInitError("Problems found in the requested settings! "
+                                   "Please address and try again."
+                                   )
         
+        
+    def _validate_settings(self):
+        """
+        Validate the requested settings
+        
+        Args:
+            None
+        
+        Returns:
+            Bool
+        """
+        
+        regexp_pattern = r"^(ut[0-9][0-9][0-1][0-9][0-3][0-9])$"
+        if not bool(re.match(regexp_pattern, self.run_date)):
+            self.logger.critical("Run date must be in the form utYYMMDD")
+            return False
+        
+        if not self.path_to_watch.is_dir():
+            self.logger.critical(f"The provided path to watch, "
+                                 f"{self.path_to_watch}, does not exist!"
+                                 )
+            return False
+        
+        if not self.path_to_untar.is_dir():
+            self.logger.critical(f"The provided path to untar, "
+                                 f"{self.path_to_untar}, does not exist!"
+                                 )
+            return False
+        
+        if not self.path_to_sbatch.is_dir():
+            self.logger.critical(f"The provided path to sbatch, "
+                                 f"{self.path_to_sbatch}, does not exist!"
+                                 )
+            return False
+        
+        if not self.path_to_sbatch.is_dir():
+            self.logger.critical(f"The provided sbatch output directory, "
+                                 f"{self.sbatch_out_dir}, does not exist!"
+                                 )
+            return False
+        
+        return True
         
     def set_sbatch_vars(self,
                         res_name: Union[str, None] = None,
