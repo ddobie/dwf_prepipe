@@ -13,7 +13,7 @@ import logging
 
 from pathlib import Path
 from typing import Union
-from utils import wait_for_file
+from dwfprepipe.utils import wait_for_file
 
 
 class CTIOPush:
@@ -40,45 +40,75 @@ class CTIOPush:
             Exception: Invalid `push_method`
         """
         
-        valid_methods = {'s': 'serial',
-                         'p': 'parallel',
-                         'b': 'bundle',
-                         'e':'end of night',
-                         }
         self.logger = logging.getLogger('dwf_prepipe.push.CTIOPush')
         
-        if push_method in valid_methods.keys():
-            push_method = valid_methods[push_method]
-        
-        if push_method not in valid_methods.values():
-            raise Exception(
-                "The push method must be one of the following:"
-                "(s)erial, (p)arrallel, (b)undle, (l)ist, (e)nd of night."
-                "Please choose one of the above and try again."
-                )
-        
-        self.logger.info('Created CTIOPush instance')
+        self.valid_methods = {'s': 'serial',
+                              'p': 'parallel',
+                              'b': 'bundle',
+                              'e':'end of night',
+                              }
+
+        if push_method in self.valid_methods.keys():
+            push_method = self.valid_methods[push_method]
         
         self.path_to_watch = Path(path_to_watch)
-        self.logger.info(f"Watching {path_to_watch}...")
-        
         self.Qs = Qs
-        self.logger.info(f"Compressing with Qs={Qs}...")
         
         self.push_method = push_method
-        self.logger.info(f"Will transfer with {push_method} protocol...")
         self.nbundle = nbundle
         
-        self.jp2_dir= self.path_to_watch / 'jp2'
+        self.jp2_dir = self.path_to_watch / 'jp2'
         
         self.set_ssh_config()
         
+        self.logger.info("Successfully initiated CTIOPush instance')
+        self.logger.info(f"Watching {self.path_to_watch}...")
+        self.logger.info(f"Will transfer with {self.push_method} protocol...")
+        self.logger.debug(f"Running with Qs={self.Qs}")
+        self.logger.debug(f"Running with nbundle={self.nbundle}")
+        self.logger.debug(f"Running with jp2_dir={self.jp2_dir}")
+
+        
+    def _validate_settings(self):
+        """
+        Validate the requested settings
+        
+        Args:
+            None
+        
+        Returns:
+            bool
+        """
+        
+        if self.push_method not in self.valid_methods.values():
+            self.logger.critical(
+                "The push method must be one of the following: "
+                "(s)erial, (p)arallel, (b)undle, (e)nd of night. "
+                "Please choose one of the above and try again."
+                )
+            return False
+        
+        if not self.path_to_watch.is_dir():
+            self.logger.critical(f"The provided path to watch, "
+                                 f"{self.path_to_watch}, does not exist!"
+                                 )
+            return False
+        
+        if not self.jp2_dir.is_dir():
+            self.logger.critical(f"The provided jp2 directory, "
+                                 f"{self.jp2_dir}, does not exist!"
+                                 )
+            return False
+        
+        return True
         
     def set_ssh_config(self,
                       user: str = 'fstars',
                       host: str = 'ozstar.swin.edu.au',
-                      push_dir: Union[str, Path] = '/fred/oz100/fstars/push/',
-                      target_dir: Union[str, Path] = '/fred/oz100/fstars/DWF_Unpack_Test/push/'
+                      push_dir: Union[str, Path] = 
+                        '/fred/oz100/fstars/push/',
+                      target_dir: Union[str, Path] = 
+                        '/fred/oz100/fstars/DWF_Unpack_Test/push/'
                       ):
         """
         Set the ssh variables and target/destination directories.
@@ -299,7 +329,7 @@ class CTIOPush:
 
         if not wait_for_file(f):
             self.logger.info(f'{f} not written in time! Skipping...')
-            continue
+            return
 
         self.packagefile(filename)
         self.pushfile(filename)
