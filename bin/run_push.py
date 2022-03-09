@@ -14,20 +14,20 @@ def parse_args():
     
     
     # Parse Inputs
-    parser = argparse.ArgumentParser(description='DWF_Prepipe push script for raw data from CTIO', formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser()
     
     parser.add_argument('-d',
-                        '--data_dir',
+                        '--data-dir',
                         metavar='DIRECTORY',
                         type=str,
-                        default=dir_def,
+                        default=None,
                         help='Directory where tarballs of compressed files are placed'
                         )
     
     parser.add_argument('-q',
                         '--Qs',
                         type=float,
-                        default=Qs_def,
+                        default=None,
                         help='Qstep for fits2jpeg compression'
                         )
     
@@ -35,7 +35,7 @@ def parse_args():
                         metavar='PROTOCOL',
                         type=str,
                         default=method_def,
-                        help='File Transfer method:(s)erial, (p)arrallel, (b)undle, (l)ist, (e)nd of night'
+                        help='File Transfer method:(s)erial, (p)arallel, (b)undle, (l)ist, (e)nd of night'
                         )
     
     parser.add_argument('--nbundle',
@@ -45,7 +45,7 @@ def parse_args():
                         help='Number of Files to bundle together'
                         )
     
-    parser.add_argument('--exp_min',
+    parser.add_argument('--exp-min',
                         metavar='NUMBER',
                         type=int,
                         default=exp_min_def,
@@ -64,8 +64,29 @@ def parse_args():
 
     args = parser.parse_args()
     
+    if args.data_dir is None:
+        default_data_dir = os.getenviron("DATA_DIR")
+        if default_data_dir is None:
+            raise Exception("No data directory provided. Please set it by "
+                            "passing the --data-dir argument, or by setting "
+                            "The DATA_DIR environment variable."
+                            )
+        else:
+            args.data_dir = default_data_dir
+    
+    if args.Qs is None:
+        default_Qs = os.getenviron("QS")
+        if default_Qs is None:
+            raise Exception("No compression ratio provided. Please set it by "
+                            "passing the --Qs argument, or by setting "
+                            "The QS environment variable."
+                            )
+        else:
+            args.Qs = default_Qs
+    
     return args
     
+
 if __name__ == '__main__':
     start = datetime.datetime.now()
     
