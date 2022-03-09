@@ -67,7 +67,7 @@ def parse_args():
     args = parser.parse_args()
     
     if args.data_dir is None:
-        default_data_dir = os.getenviron("DATA_DIR")
+        default_data_dir = os.getenv("DATA_DIR")
         if default_data_dir is None:
             raise Exception("No data directory provided. Please set it by "
                             "passing the --data-dir argument, or by setting "
@@ -77,7 +77,7 @@ def parse_args():
             args.data_dir = default_data_dir
     
     if args.Qs is None:
-        default_Qs = os.getenviron("QS")
+        default_Qs = os.getenv("QS")
         if default_Qs is None:
             raise Exception("No compression ratio provided. Please set it by "
                             "passing the --Qs argument, or by setting "

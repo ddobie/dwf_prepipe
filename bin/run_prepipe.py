@@ -40,7 +40,7 @@ def parse_args():
     args = parser.parse_args()
     
     if args.push_dir is None:
-        default_push_dir = os.getenviron("PUSH_DIR")
+        default_push_dir = os.getenv("PUSH_DIR")
         if default_push_dir is None:
             raise Exception("No Push directory provided. Please set it by "
                             "passing the --push-dir argument, or by setting "
