@@ -16,7 +16,7 @@ import astropy.io.fits as pyfits
 
 from pathlib import Path
 from typing import Union, List
-from utils import wait_for_file
+from dwfprepipe.utils import wait_for_file
 
 
 class PrepipeInitError(Exception):
@@ -67,10 +67,10 @@ class Prepipe:
                                    "Please address and try again."
                                    )
         self.logger.info("Successfully initialised Prepipe.")
-        self.logger.debug(f"Running with path_to_watch={self.path_to_watch}")
+        self.logger.info(f"Watching {self.path_to_watch}...")
         self.logger.debug(f"Running with path_to_untar={self.path_to_untar}")
         self.logger.debug(f"Running with path_to_sbatch={self.path_to_sbatch}")
-        self.logger.debugf"Running with run_date={self.run_date}")
+        self.logger.debug(f"Running with run_date={self.run_date}")
         
         
     def _validate_settings(self):
@@ -81,7 +81,7 @@ class Prepipe:
             None
         
         Returns:
-            Bool
+            bool
         """
         
         regexp_pattern = r"^(ut[0-9][0-9][0-1][0-9][0-3][0-9])$"
