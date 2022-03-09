@@ -20,26 +20,37 @@ def parse_args():
                         help='Turn off all non-essential debug output'
                         )
 
-    parser.add_argument('--push_dir',
+    parser.add_argument('--push-dir',
                         metavar='DIRECTORY',
                         type=str,
-                        default="/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/",
+                        default=None,
                         help='Path to tarball directory')
 
-    parser.add_argument('--run_date',
+    parser.add_argument('--run-date',
                         type=str,
                         help='Date of the run night and data being unpacked'
                         )
 
-    parser.add_argument('--res_name',
+    parser.add_argument('--res-name',
                         type=str,
                         help='Ozstar reservation name'
                         )
 
     args = parser.parse_args()
     
-    return args
+    if args.push_dir is None:
+        default_push_dir = os.getenviron("PUSH_DIR")
+        if default_push_dir is None:
+            raise Exception("No Push directory provided. Please set it by "
+                            "passing the --push-dir argument, or by setting "
+                            "The PUSH_DIR environment variable."
+                            )
+        else:
+            args.push_dir = default_push_dir
     
+    return args
+
+
 if __name__ == '__main__':
     start = datetime.datetime.now()
     
