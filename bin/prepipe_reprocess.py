@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# example usage ./dwf_prepipe.py /fred/oz100/fstars/DWF_Unpack_Test/push/
 import os
 import time
 import math
