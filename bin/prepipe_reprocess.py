@@ -19,7 +19,7 @@ def parse_args():
     parser.add_argument('--reprocess_list',
                         metavar='LIST_PATH',
                         type=str,
-                        help='List of files to reprocess'
+                        help='List of files to reprocess, one per line.'
                         )
     parser.add_argument('--debug',
                         action="store_true",
