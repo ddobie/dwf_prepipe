@@ -8,7 +8,7 @@
 #SBATCH --ntasks-per-node={ppn}
 #SBATCH --mem={mem}
 #SBATCH --tmp={tmp}
-#SBATCH --reservation={res}
+{res_str}
 
 echo ------------------------------------------------------
 echo Automated script by dwf_prepipe

@@ -68,13 +68,13 @@ class CTIOPush:
         
         self.set_ssh_config()
         
-        valid_settings = self.validate_settings()
+        valid_settings = self._validate_settings()
         if not valid_settings:
             raise CTIOPushInitError("Problems found in the requested "
                                     "settings! Please address and try again."
                                     )
         
-        self.logger.info("Successfully initiated CTIOPush instance')
+        self.logger.info("Successfully initiated CTIOPush instance!")
         self.logger.info(f"Watching {self.path_to_watch}...")
         self.logger.info(f"Will transfer with {self.push_method} protocol...")
         self.logger.debug(f"Running with Qs={self.Qs}")
@@ -152,8 +152,8 @@ class CTIOPush:
         self.user = user
         self.logger.debug(f"Setting host to {host}")
         self.host = host
-        self.logger.debug(f"Setting reciever to {reciever}")
         self.reciever = f'{user}@{host}'
+        self.logger.debug(f"Setting reciever to {self.reciever}")
         self.logger.debug(f"Setting push_dir to {push_dir}")
         self.push_dir = Path(push_dir)
         self.logger.debug(f"Setting target_dir to {target_dir}")

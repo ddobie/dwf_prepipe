@@ -66,22 +66,20 @@ if __name__ == '__main__':
     path_to_untar = path_to_watch / 'untar'
     path_to_sbatch = path_to_watch / 'sbatch'
     
-    with open(args.reprocess_list) as f:
-        files=f.read().strip()
-    
-    files=files.splitlines()
-    
     prepipe = Prepipe(path_to_watch,
                       path_to_untar,
                       path_to_sbatch,
                       args.run_date,
                       args.res_name
                       )
+    
+    with open(args.reprocess_list) as f:
+        files=f.read().strip()
+    
+    files=files.splitlines()
 
     for f in files:
         file_name = Path(f)
         if file_name.is_file():
-            logger.info(f'Reprocessing: {path}')
+            logger.info(f'Reprocessing {file_name}...')
             prepipe.unpack(file_name)
-
-            time.sleep(60)
