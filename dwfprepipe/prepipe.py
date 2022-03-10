@@ -36,31 +36,31 @@ class Prepipe:
                  ):
         """
         Constructor method.
-        
+
         Args:
             path_to_watch: Directory to watch for new files.
             path_to_untar: Directory to untar new files into.
             path_to_sbatch: Directory to write sbatch files to.
             run_date: UT date of the run in the form `utYYMMDD`.
             res_name: Name of the ozstar reservation, defaults to None.
-        
+
         Returns:
             None
-        
+
         Raises:
             PrepipeInitError: Problems found in the requested settings.
         """
-        
+
         self.logger = logging.getLogger('dwf_prepipe.prepipe.Prepipe')
-        
+
         self.path_to_watch = Path(path_to_watch)
         self.path_to_untar = Path(path_to_untar)
         self.path_to_sbatch = Path(path_to_sbatch)
         self.run_date = run_date
         self.sbatch_out_dir = self.path_to_sbatch / 'out'
-        
+
         self.set_sbatch_vars(res_name)
-        
+
         valid_settings = self._validate_settings()
         if not valid_settings:
             raise PrepipeInitError("Problems found in the requested settings! "
@@ -71,52 +71,51 @@ class Prepipe:
         self.logger.debug(f"Running with path_to_untar={self.path_to_untar}")
         self.logger.debug(f"Running with path_to_sbatch={self.path_to_sbatch}")
         self.logger.debug(f"Running with run_date={self.run_date}")
-        
-        
+
     def _validate_settings(self):
         """
         Validate the requested settings.
-        
+
         Args:
             None
-        
+
         Returns:
             bool
         """
-        
+
         valid = True
-        
+
         regexp_pattern = r"^(ut[0-9][0-9][0-1][0-9][0-3][0-9])$"
         if not bool(re.match(regexp_pattern, self.run_date)):
             self.logger.critical("Run date must be in the form utYYMMDD")
             valid = False
-        
+
         if not self.path_to_watch.is_dir():
             self.logger.critical(f"The provided path to watch, "
                                  f"{self.path_to_watch}, does not exist!"
                                  )
             valid = False
-        
+
         if not self.path_to_untar.is_dir():
             self.logger.critical(f"The provided path to untar, "
                                  f"{self.path_to_untar}, does not exist!"
                                  )
             valid = False
-        
+
         if not self.path_to_sbatch.is_dir():
             self.logger.critical(f"The provided path to sbatch, "
                                  f"{self.path_to_sbatch}, does not exist!"
                                  )
             return False
-        
+
         if not self.path_to_sbatch.is_dir():
             self.logger.critical(f"The provided sbatch output directory, "
                                  f"{self.sbatch_out_dir}, does not exist!"
                                  )
             valid = False
-        
+
         return valid
-        
+
     def set_sbatch_vars(self,
                         res_name: Union[str, None] = None,
                         walltime: str = '00:05:00',
@@ -128,16 +127,16 @@ class Prepipe:
                         ):
         """
         Set the variables to be used in the sbatch template
-        
+
         Args:
             res_name: Name of the ozstar reservation, defaults to None.
             walltime: Walltime of each job, defaults to 5 minutes.
             queue: Queue to use, defaults to "bryan".
             nodes: Number of nodes to request, defaults to 1.
-            ppn: 
+            ppn:
             mem: Total memory to request, defaults to 90G.
             tmp: Temporary memory to request, defaults to 4G.
-        
+
         Returns:
             None
         """
@@ -155,15 +154,14 @@ class Prepipe:
         self.logger.debug(f"Setting tmp to {tmp}")
         self.tmp = tmp
         self.res_name = res_name
-        
+
         if res_name is None:
             self.res_str = ''
             self.logger.warning("Warning: not using a reservation")
         else:
             self.res_str = '#SBATCH --reservation={}'.format(self.res_name)
             self.logger.debug(f"Setting res_name to {res_name}")
-    
-    
+
     def unpack(self,
                file_name: Union[Path, str],
                ccdlist: Union[List[int], None] = None,
@@ -171,46 +169,45 @@ class Prepipe:
                ):
         """
         Uncompress new file + create & submit assosciated sbatch scripts
-        
+
         Args:
             file_name: File to unpack
             ccdlist: List of CCDs to process, defaults to None.
-            n_per_ccd: 
-            
+            n_per_ccd:
+
         Returns:
             None
         """
 
         if ccdlist is None:
-            ccdlist = list(map(str, range(1,60)))
+            ccdlist = list(map(str, range(1, 60)))
 
         file_name = Path(file_name)
-        
 
-        #Untar new file
+        # Untar new file
         self.logger.info(f'Unpacking: {file_name}')
         try:
             subprocess_call = ['tar',
                                '-xf',
-                               push_path+file_name,
+                               push_path + file_name,
                                '-C',
                                untar_path
                                ]
-            self.logger.debug(f"Running {subprocess_call}"
+            self.logger.debug(f"Running {subprocess_call}")
             subprocess.check_call(subprocess_call)
-            
+
         except subprocess.CalledProcessError:
             self.logger.critical(f"FAILED UN-TAR {file_name}. Skipping...")
             pass
-        
-        Exposure=DECam_Root.split('_')[1]
 
-        #Create Qsub scripts for new file with n_per_ccd jobs per script
-        n_scripts=math.ceil(len(ccdlist)/n_per_ccd)
+        Exposure = DECam_Root.split('_')[1]
+
+        # Create Qsub scripts for new file with n_per_ccd jobs per script
+        n_scripts = math.ceil(len(ccdlist) / n_per_ccd)
         self.logger.info(f'Writing {nscripts} sbatch scripts for {file_name}')
-        
+
         for script_num in range(n_scripts):
-            ccds = ccdlist[n_per_ccd*script_num:(script_num+1)*n_per_ccd]
+            ccds = ccdlist[n_per_ccd * script_num:(script_num + 1) * n_per_ccd]
             dwf_prepipe_sbatchccds(filename, script_num, ccds)
 
     def _write_sbatch(self,
@@ -220,21 +217,21 @@ class Prepipe:
                       ):
         """
         Write a single Qsub script.
-        
+
         Args:
             sbatch_name: Path to write the sbatch file to.
             qroot: Qsub root name.
             jobs_str: String containing the jobs to run, one per line.
-        
+
         Returns:
             None
         """
-        
+
         qroot_path = self.sbatch_out_dir / qroot
-        
+
         with importlib.resources.path(
             "dwfprepipe.data", "sbatch_template.txt"
-        ) as sbatch_template_file: 
+        ) as sbatch_template_file:
             f = open(sbatch_template_file, "r")
             sbatch_templ = f.read()
         sbatch_text = sbatch_templ.format(qroot=qroot,
@@ -247,13 +244,11 @@ class Prepipe:
                                           res_str=self.res_str,
                                           jobs_str=jobs_str
                                           )
-                                          
+
         sbatch_file = f.open(sbatch_name, 'w')
         sbatch_file.write(sbatch_text)
         sbatch_file.close()
-        
-        
-    
+
     def sbatchccds(self,
                    file_name: Path,
                    script_num: int,
@@ -261,22 +256,22 @@ class Prepipe:
                    ):
         """
         Write Qsub scripts for all files & submits them to the queue.
-        
+
         Args:
             file_name: Path to file to be processed.
             script_num: Number identifying which script this is.
             ccds: CCDs to be processed in this sbatch file.
-        
+
         Returns:
             None
         """
-        
+
         DECam_root = file_name.stem
         qroot = f'{DECam_root}_q{script_num+1}'
-        
-        image_list=[f'{DECam_root}_{f}.jp2' for f in ccds]
 
-        sbatch_name=sbatch_path / f'{qroot}.sbatch'
+        image_list = [f'{DECam_root}_{f}.jp2' for f in ccds]
+
+        sbatch_name = sbatch_path / f'{qroot}.sbatch'
 
         self.logger.info(f"Creating Script: {sbatch_name} "
                          f"for CCDs {min(ccds)} to {max(ccds)}"
@@ -288,39 +283,36 @@ class Prepipe:
         jobs_str = ''
         for image in image_list:
             jobs_str += jobs_str_temp.format(image, self.run_date)
-        
+
         self._write_sbatch(sbatch_name, qroot, jobs_str)
-        
+
         if sbatch_name.is_file():
             subprocess.run(['sbatch', str(sbatch_name)])
         else:
             logger.critical(f"{sbatch_name} does not exist!")
-                                                  
-        
-        
 
     def listen(self):
         """
         Listen for files to process.
-        
+
         Args:
             None
-        
+
         Returns:
             None
         """
 
         self.logger.info("Now running!")
         self.logger.info(f"Monitoring: {self.path_to_watch}")
-        
-        glob_str = str(self.path_to_watch)+'*.fits.fz'
-        
+
+        glob_str = str(self.path_to_watch) + '*.fits.fz'
+
         before = glob.glob(glob_str)
-        
+
         while True:
             after = glob.glob(glob_str)
-            added = [f for f in after if not f in before]
-            removed = [f for f in before if not f in after]
+            added = [f for f in after if f not in before]
+            removed = [f for f in before if f not in after]
 
             if added:
                 added_str = ", ".join(added)
@@ -335,8 +327,8 @@ class Prepipe:
                     continue
 
                 self.unpack(f)
-               
+
             if not added:
                 time.sleep(5)
-            
+
             before = after
