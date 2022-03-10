@@ -93,39 +93,41 @@ class CTIOPush:
             bool
         """
         
+        valid = True
+
         if self.push_method not in self.valid_methods.values():
             self.logger.critical(
                 "The push method must be one of the following: "
                 "(s)erial, (p)arallel, (b)undle, (e)nd of night. "
                 "Please choose one of the above and try again."
                 )
-            return False
+            valid = False
         
         if not self.path_to_watch.is_dir():
             self.logger.critical(f"The provided path to watch, "
                                  f"{self.path_to_watch}, does not exist!"
                                  )
-            return False
+            valid = False
         
         if not self.jp2_dir.is_dir():
             self.logger.critical(f"The provided jp2 directory, "
                                  f"{self.jp2_dir}, does not exist!"
                                  )
-            return False
+            valid = False
         
         if not self.push_dir.is_dir():
             self.logger.critical(f"The provided push directory, "
                                  f"{self.push_dir}, does not exist!"
                                  )
-            return False
+            valid = False
         
         if not self.target_dir.is_dir():
             self.logger.critical(f"The provided target directory, "
                                  f"{self.target_dir}, does not exist!"
                                  )
-            return False
+            valid = False
         
-        return True
+        return valid
         
     def set_ssh_config(self,
                       user: str = 'fstars',

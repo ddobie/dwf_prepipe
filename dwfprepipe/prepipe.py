@@ -84,22 +84,24 @@ class Prepipe:
             bool
         """
         
+        valid = True
+        
         regexp_pattern = r"^(ut[0-9][0-9][0-1][0-9][0-3][0-9])$"
         if not bool(re.match(regexp_pattern, self.run_date)):
             self.logger.critical("Run date must be in the form utYYMMDD")
-            return False
+            valid = False
         
         if not self.path_to_watch.is_dir():
             self.logger.critical(f"The provided path to watch, "
                                  f"{self.path_to_watch}, does not exist!"
                                  )
-            return False
+            valid = False
         
         if not self.path_to_untar.is_dir():
             self.logger.critical(f"The provided path to untar, "
                                  f"{self.path_to_untar}, does not exist!"
                                  )
-            return False
+            valid = False
         
         if not self.path_to_sbatch.is_dir():
             self.logger.critical(f"The provided path to sbatch, "
@@ -111,9 +113,9 @@ class Prepipe:
             self.logger.critical(f"The provided sbatch output directory, "
                                  f"{self.sbatch_out_dir}, does not exist!"
                                  )
-            return False
+            valid = False
         
-        return True
+        return valid
         
     def set_sbatch_vars(self,
                         res_name: Union[str, None] = None,
