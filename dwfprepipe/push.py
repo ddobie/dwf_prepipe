@@ -18,7 +18,7 @@ from dwfprepipe.utils import wait_for_file
 
 class CTIOPushInitError(Exception):
     """
-    A defined error for a problem encountered in the CTIOPush initialisation
+    A defined error for a problem encountered in the CTIOPush initialisation.
     """
     pass
 
@@ -44,7 +44,7 @@ class CTIOPush:
             None
         
         Raises:
-            Exception: Invalid `push_method`
+            CTIOPushInitError: Problems found in the requested settings.
         """
         
         self.logger = logging.getLogger('dwf_prepipe.push.CTIOPush')
@@ -334,7 +334,7 @@ class CTIOPush:
         """
         
         for f in filelist:
-            self.logger.info(f'Processing: {f}')
+            self.logger.info(f'Processing: {f}...')
 
             if not wait_for_file(f):
                 self.logger.info(f'{f} not written in time! Skipping...')
@@ -346,7 +346,7 @@ class CTIOPush:
             
     def process_serial(self, filename: Union[str, Path]):
         """
-        Process a file in serial
+        Process a file in serial.
         
         Args:
             filename: Path to file to be processed.
@@ -355,7 +355,7 @@ class CTIOPush:
             None
         """
 
-        self.logger.info(f'Processing: {filename}')
+        self.logger.info(f'Processing: {filename}...')
 
         if not wait_for_file(f):
             self.logger.info(f'{f} not written in time! Skipping...')
@@ -382,12 +382,12 @@ class CTIOPush:
         else:
             bundle=sorted_filelist
         
-        self.logger.info(f"Bundling: {', '.join(bundle)}")
+        self.logger.info(f"Bundling: {', '.join(bundle)}...")
         
         bundle_size = len(bundle)
         
         for i, f in enumerate(bundle):
-            self.logger.info(f'Processing: {f}')
+            self.logger.info(f'Processing: {f}...')
 
             if not wait_for_file(f):
                 self.logger.info(f'{f} not written in time! Skipping...')
@@ -405,7 +405,7 @@ class CTIOPush:
     
     def listen(self):
         """
-        Run
+        Listen for new images, process and push them.
         
         Args:
             None

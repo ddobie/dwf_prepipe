@@ -21,7 +21,7 @@ from dwfprepipe.utils import wait_for_file
 
 class PrepipeInitError(Exception):
     """
-    A defined error for a problem encountered in the Prepipe initialisation
+    A defined error for a problem encountered in the Prepipe initialisation.
     """
     pass
 
@@ -40,15 +40,15 @@ class Prepipe:
         Args:
             path_to_watch: Directory to watch for new files.
             path_to_untar: Directory to untar new files into.
-            path_to_sbatch:
-            run_date:
+            path_to_sbatch: Directory to write sbatch files to.
+            run_date: UT date of the run in the form `utYYMMDD`.
             res_name: Name of the ozstar reservation, defaults to None.
         
         Returns:
             None
         
         Raises:
-            PrepipeInitError: Problems found in the requested settings
+            PrepipeInitError: Problems found in the requested settings.
         """
         
         self.logger = logging.getLogger('dwf_prepipe.prepipe.Prepipe')
@@ -75,7 +75,7 @@ class Prepipe:
         
     def _validate_settings(self):
         """
-        Validate the requested settings
+        Validate the requested settings.
         
         Args:
             None
@@ -217,7 +217,7 @@ class Prepipe:
                       jobs_str: str
                       ):
         """
-        Write the Qsub script
+        Write a single Qsub script.
         
         Args:
             sbatch_name: Path to write the sbatch file to.
@@ -258,12 +258,15 @@ class Prepipe:
                    ccds: List[int]
                    ):
         """
-        Write Qsub Script & submit to queue
+        Write Qsub scripts for all files & submits them to the queue.
         
         Args:
-            file_name: Path to file to be processed
+            file_name: Path to file to be processed.
             script_num: Number identifying which script this is.
-            ccds: CCDs to be processed in this sbatch file
+            ccds: CCDs to be processed in this sbatch file.
+        
+        Returns:
+            None
         """
         
         DECam_root = file_name.stem
@@ -295,6 +298,16 @@ class Prepipe:
         
 
     def listen(self):
+        """
+        Listen for files to process.
+        
+        Args:
+            None
+        
+        Returns:
+            None
+        """
+
         self.logger.info("Now running!")
         self.logger.info(f"Monitoring: {self.path_to_watch}")
         

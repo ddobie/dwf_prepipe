@@ -25,16 +25,19 @@ def parse_args():
                         metavar='DIRECTORY',
                         type=str,
                         default=None,
-                        help='Path to tarball directory')
+                        help='Path to tarball directory. If not supplied, '
+                             'defaults to PUSH_DIR environment variable.'
+                        )
 
     parser.add_argument('--run-date',
                         type=str,
-                        help='Date of the run night and data being unpacked'
+                        help='Date of the run night and data being unpacked '
+                             'in the form `utYYMMDD`.'
                         )
 
     parser.add_argument('--res-name',
                         type=str,
-                        help='Ozstar reservation name'
+                        help='Ozstar reservation name.'
                         )
 
     args = parser.parse_args()

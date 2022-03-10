@@ -21,14 +21,16 @@ def parse_args():
                         type=str,
                         default=None,
                         help='Directory where tarballs of compressed '
-                             'files are placed.'
+                             'files are placed. If not supplied, defaults to '
+                             'DATA_DIR environment variable.'
                         )
     
     parser.add_argument('-q',
                         '--Qs',
                         type=float,
                         default=None,
-                        help='Qstep for fits2jpeg compression.'
+                        help='Qstep for fits2jpeg compression. If not '
+                             'supplied, defaults to QS environment variable.'
                         )
     
     parser.add_argument('--method',
@@ -36,14 +38,16 @@ def parse_args():
                         type=str,
                         default=method_def,
                         help='File Transfer method:(s)erial, (p)arallel, '
-                             '(b)undle, (l)ist, (e)nd of night.'
+                             '(b)undle, (l)ist, (e)nd of night. Defaults to '
+                             'parallel.'
                         )
     
     parser.add_argument('--nbundle',
                         metavar='NUMBER',
                         type=int,
                         default=nbundle_def,
-                        help='Number of Files to bundle together'
+                        help='Number of Files to bundle together. Defaults to '
+                             '4.'
                         )
     
     parser.add_argument('--exp-min',
@@ -51,7 +55,8 @@ def parse_args():
                         type=int,
                         default=exp_min_def,
                         help='Exposure Number Start for end of night file '
-                             'transfer catchup.'
+                             'transfer catchup. Only relevant for method=e. '
+                             'Defaults to -1, i.e. all.'
                         )
     
     parser.add_argument('--debug',
