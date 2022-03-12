@@ -276,7 +276,7 @@ class Prepipe:
                          f"for CCDs {min(ccds)} to {max(ccds)}"
                          )
         with importlib.resources.path(
-            "dwfprepipe.bin", "prepipe_processccd.py"
+            "dwfprepipe.bin", "prepipe_process_ccd.py"
         ) as process_ccd_script:
             jobs_str_temp = f'{process_ccd_script} -i {{0}} -d {{1}} &\n'
         jobs_str = ''
