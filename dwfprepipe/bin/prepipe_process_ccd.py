@@ -263,7 +263,7 @@ def main():
 
     args = parse_args()
 
-    logfile = "prepipe_push_{}.log".format(
+    logfile = "prepipe_process_ccd_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
     )
 
