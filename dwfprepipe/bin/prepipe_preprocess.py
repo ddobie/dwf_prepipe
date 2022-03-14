@@ -131,8 +131,9 @@ def parse_args():
                         )
 
     args = parser.parse_args()
-    
+
     return args
+
 
 if __name__ == '__main__':
     start = datetime.datetime.now()
@@ -145,7 +146,7 @@ if __name__ == '__main__':
 
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
-    args = parse_args()    
+    args = parse_args()
 
     if args.mpi:
         from mpi4py import MPI
@@ -197,10 +198,11 @@ if __name__ == '__main__':
             bpm_file = f"DECam_Master_20140209v2_cd_{ccdnum_header:.0f}.fits"
             with Path(importlib.resources.path("dwfprepipe.data.bpm")) as bpm:
                 bpm_name = bpm / bpm_file
-                        )
+
         with (fits.open(flat) as fl,
               fits.open(bias) as b,
-              fits.open(bpm_name) as bp):
+              fits.open(bpm_name) as bp
+              ):
 
             fhdu = fl[0]
             bhdu = b[0]
