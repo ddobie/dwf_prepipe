@@ -1,13 +1,6 @@
-import os
 import time
-import math
-import sys
 import glob
-import warnings
 import subprocess
-import astropy.io.fits as pyfits
-
-import datetime
 import logging
 
 from pathlib import Path
@@ -307,7 +300,7 @@ class CTIOPush:
 
         self.logger.info('Starting end of night transfers...')
         self.logger.info(f'Missing {num_missing} of {total_obs} '
-                          f'files ({perc}% successful)'
+                         f'files ({perc}% successful)'
                          )
 
         for i, f in enumerate(missing):

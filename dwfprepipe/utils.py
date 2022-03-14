@@ -12,19 +12,20 @@ try:
 except ImportError:
     use_colorlog = False
 
+
 def get_logger(debug: bool,
                quiet: bool,
                logfile: Optional[Union[str, Path]] = None
                ):
     """
     Initiate a logger.
-    
+
     Args:
         debug: Set the logging level to debug.
         quiet: Suppress all non-essential output by setting the logging level
             to warning.
         logfile: File to write the log to.
-    
+
     Returns:
         A logger.
     """
@@ -73,22 +74,23 @@ def get_logger(debug: bool,
 
     return logger
 
+
 def wait_for_file(filepath: Union[str, Path],
                   wait_time: Union[int, float] = 0.5,
                   max_wait: Union[int, float] = 15
                   ):
     """
     Check if a file is still being written, and if so, wait for it to finish.
-    
+
     Args:
         filepath: Path to the file of interest
         wait_time: Time to wait between file size checks
         max_wait: Maximum time to wait for the file to finish being written.
-    
+
     Returns:
         A bool that is True if the file has been written and False otherwise.
     """
-    if type(filepath) == str:
+    if isinstance(filepath, str):
         filepath = Path(filepath)
 
     waited_time = 0
