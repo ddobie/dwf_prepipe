@@ -172,8 +172,9 @@ if __name__ == '__main__':
         with fits.open(frame) as hdul:
             ihdu, mhdu = overscan_and_mask_single(hdul[0])
             ccdnum_header = hdul[0].header["CCDNUM"]
-            bpm_name = (f"/home/fstars/dwf_prepipe/bpm/DECam_Master_20140209v2"
-                        f"_cd_{format(ccdnum_header, '02d')}.fits"
+            bpm_file = f"DECam_Master_20140209v2_cd_{ccdnum_header:.0f}.fits"
+            with Path(importlib.resources.path("dwfprepipe.data.bpm")) as bpm:
+                bpm_name = bpm / bpm_file
                         )
         with (fits.open(flat) as fl,
               fits.open(bias) as b,
