@@ -267,11 +267,11 @@ if __name__ == '__main__':
             chkname = frame.replace('fits', 'noise.fits')
             syscall = syscall % (sexconf, catname, chkname, sciname)
             syscall += clargs
-            print(syscall)
+            logger.info(f"Running sextractor with {syscall}")
 
             # call it
             subprocess.check_call(syscall.split())
-            print(f'sextractor complete for {sciname}')
+            logger.info(f'sextractor complete for {sciname}')
 
             # now run scamp
             syscall = (f'scamp -c {scampconf} {catname} -ASTREF_CATALOG FILE '
@@ -281,7 +281,7 @@ if __name__ == '__main__':
                        )
             if args.scampbin is not None:
                 syscall = args.scampbin[0] + syscall[5:]
-            print(syscall)
+            logger.info(f"Running scamp with {syscall}")
             subprocess.check_call(syscall.split())
 
             # fix the header
@@ -292,4 +292,4 @@ if __name__ == '__main__':
                                    ]
                                   )
 
-            print(f'scamp complete for {sciname}')
+            logger.info(f'scamp complete for {sciname}')
