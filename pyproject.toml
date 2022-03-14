@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dwf_prepipe"
-version = "0.1.0"
+version = "2.0.0"
 description = "This repository holds the code of DWF prepipe, a (mostly) python module to process data from the Dark Energy Camera (DECam) as part of the Deeper Wider Faster program."
 authors = ["Dougal Dobie <ddobie@swin.edu.au>"]
 license = "MIT"
