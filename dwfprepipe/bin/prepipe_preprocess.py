@@ -155,14 +155,13 @@ if __name__ == '__main__':
         myframes = frames
 
     # list a few astromatic config files
-    wd = os.path.dirname(__file__)
-    confdir = os.path.join(wd, 'config')
-    sexconf = os.path.join(confdir, 'scamp.sex')
-    nnwname = os.path.join(confdir, 'default.nnw')
-    filtname = os.path.join(confdir, 'default.conv')
-    paramname = os.path.join(confdir, 'scamp.param')
-    scampconf = os.path.join(confdir, 'scamp.conf')
-    missfitsconf = os.path.join(confdir, 'missfits.conf')
+    with Path(importlib.resources.path("dwfprepipe.data.config")) as confdir:
+        sexconf = confdir / 'scamp.sex'
+        nnwname = confdir / 'default.nnw'
+        filtname = confdir / 'default.conv'
+        paramname = confdir / 'scamp.param'
+        scampconf = confdir / 'scamp.conf'
+        missfitsconf = confdir / 'missfits.conf'
 
     # pass these constant options to sextractor
     clargs = ' -PARAMETERS_NAME %s -FILTER_NAME %s -STARNNW_NAME %s' % (
