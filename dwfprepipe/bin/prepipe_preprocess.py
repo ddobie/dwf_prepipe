@@ -69,23 +69,29 @@ def _split(iterable, n):
         _split(iterable[len(iterable) // n:], n - 1) if n != 0 else []
 
 
-if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('--flat-frames', required=True,
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--flat-frames',
+                        required=True,
                         help='Frames to use for flat fielding, in the same '
                         'order as --input-frames. If the argument is '
                         'prepended with "@", then it will be treated as a '
                         'list containing the names of the flats, '
                         'one per line.',
-                        dest='flats', nargs='+')
+                        dest='flats',
+                        nargs='+'
+                        )
 
-    parser.add_argument('--bias-frames', required=True,
+    parser.add_argument('--bias-frames',
+                        required=True,
                         help='Frames to use for bias subtraction, in the same '
                         'order as --input-frames. If the argument is '
                         'prepended with "@", then it will be treated as a '
                         'list containing the names of the biases, '
                         'one per line.',
-                        dest='biases', nargs='+')
+                        dest='biases',
+                        nargs='+'
+                        )
 
     parser.add_argument('--input-frames',
                         required=True,
@@ -93,7 +99,9 @@ if __name__ == '__main__':
                              'with "@", then it will be treated as a list '
                              'containing the names of the input frames, '
                              'one per line.',
-                        dest='frames', nargs='+')
+                        dest='frames',
+                        nargs='+'
+                        )
 
     parser.add_argument('--with-scamp-exec',
                         required=False,
@@ -120,6 +128,11 @@ if __name__ == '__main__':
                         )
 
     args = parser.parse_args()
+    
+    return args
+
+if __name__ == '__main__':
+    args = parse_args()    
 
     if args.mpi:
         from mpi4py import MPI
