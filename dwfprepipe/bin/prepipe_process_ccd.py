@@ -189,8 +189,8 @@ def parse_args():
     default_photepipe = '/fred/oz100/pipes/arest/DECAM/DEFAULT/rawdata/'
     default_pushdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/'
     default_localdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/untar/'
-    default_masks = '/home/fstars/dwf_prepipe/masks'
     default_scamp = '/home/fstars/scamp_gaia/bin/scamp'
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-p',
                         '--push_dir',
@@ -246,7 +246,7 @@ def parse_args():
                         action="store_true",
                         help='Turn off all non-essential debug output'
                         )
-    parser.add_argument('--mask-path',
+    parser.add_argument('--masks-path',
                         type=str,
                         default=default_masks,
                         help='Path to DECam masks',
@@ -447,15 +447,16 @@ def main():
     input_frames = dest_dir.replace("rawdata", "workspace") + newname
     man_gaia = f'fred/oz100/pipes/DWF_PIPE/GAIA_DR2/{Field}_gaia_dr2_LDAC.fits'
 
-    subprocess.check_call(["python",
-                           f"{preprocess_path}",
-                           f"--input-frames={input_frames}",
-                           f"--flat-frames={flat}",
-                           f"--bias-frames={flat}",
-                           f"--badcol-mask={args.masks_path}",
-                           f"--with-scamp-exec={args.scamp_path}",
-                           f"--man-gaia={man_gaia}"
-                           ])
+    with importlib.resources.path('dwfprepipe.data','mask_paths.dat') as masks:
+        subprocess.check_call(["python",
+                               f"{preprocess_path}",
+                               f"--input-frames={input_frames}",
+                               f"--flat-frames={flat}",
+                               f"--bias-frames={bias",
+                               f"--badcol-mask={masks}",
+                               f"--with-scamp-exec={args.scamp_path}",
+                               f"--man-gaia={man_gaia}"
+                               ])
 
     # Remove unescessary .jp2
     logger.info('Deleting: ' + untar_path + file_name)
