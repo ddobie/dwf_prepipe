@@ -1,6 +1,12 @@
 import os
+import pdb
+import subprocess
+import argparse
+
 import numpy as np
+
 from numpy import ma
+from astropy.io import fits
 
 __whatami__ = 'Bias-correct, flat-field, astrometically calibrate, '\
               'and mask DECam images.'
@@ -64,11 +70,6 @@ def _split(iterable, n):
 
 
 if __name__ == '__main__':
-    import pdb
-    import subprocess
-    from argparse import ArgumentParser
-    from astropy.io import fits
-
     parser = ArgumentParser()
     parser.add_argument('--flat-frames', required=True,
                         help='Frames to use for flat fielding, in the same '
