@@ -58,8 +58,9 @@ def overscan_and_mask_single(hdu):
 
 
 # recursively partition an iterable into subgroups
-def _split(iterable, n): return [iterable[:len(iterable) // n]] + \
-    _split(iterable[len(iterable) // n:], n - 1) if n != 0 else []
+def _split(iterable, n):
+    return [iterable[:len(iterable) // n]] + \
+        _split(iterable[len(iterable) // n:], n - 1) if n != 0 else []
 
 
 if __name__ == '__main__':
