@@ -11,6 +11,8 @@ import glob
 
 import astropy.io.fits as pyfits
 
+from dwfprepipe.utils import get_logger
+
 
 def check_path(path):
     """Check if path ends with a slash ('/'). Else, it adds a slash.

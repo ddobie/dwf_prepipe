@@ -1,12 +1,15 @@
+#!/usr/bin/env python3
 import os
 import pdb
 import subprocess
 import argparse
+import datetime
 
 import numpy as np
 
 from numpy import ma
 from astropy.io import fits
+from dwfprepipe.utils import get_logger
 
 __whatami__ = 'Bias-correct, flat-field, astrometically calibrate, '\
               'and mask DECam images.'
@@ -132,6 +135,16 @@ def parse_args():
     return args
 
 if __name__ == '__main__':
+    start = datetime.datetime.now()
+
+    args = parse_args()
+
+    logfile = "prepipe_process_ccd_{}.log".format(
+        start.strftime("%Y%m%d_%H:%M:%S")
+    )
+
+    logger = get_logger(args.debug, args.quiet, logfile=logfile)
+
     args = parse_args()    
 
     if args.mpi:
