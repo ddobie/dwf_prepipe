@@ -1,6 +1,15 @@
+#!/usr/bin/env python3
 import os
+import pdb
+import subprocess
+import argparse
+import datetime
+
 import numpy as np
+
 from numpy import ma
+from astropy.io import fits
+from dwfprepipe.utils import get_logger
 
 __whatami__ = 'Bias-correct, flat-field, astrometically calibrate, '\
               'and mask DECam images.'
@@ -63,28 +72,29 @@ def _split(iterable, n):
         _split(iterable[len(iterable) // n:], n - 1) if n != 0 else []
 
 
-if __name__ == '__main__':
-    import pdb
-    import subprocess
-    from argparse import ArgumentParser
-    from astropy.io import fits
-
-    parser = ArgumentParser()
-    parser.add_argument('--flat-frames', required=True,
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--flat-frames',
+                        required=True,
                         help='Frames to use for flat fielding, in the same '
                         'order as --input-frames. If the argument is '
                         'prepended with "@", then it will be treated as a '
                         'list containing the names of the flats, '
                         'one per line.',
-                        dest='flats', nargs='+')
+                        dest='flats',
+                        nargs='+'
+                        )
 
-    parser.add_argument('--bias-frames', required=True,
+    parser.add_argument('--bias-frames',
+                        required=True,
                         help='Frames to use for bias subtraction, in the same '
                         'order as --input-frames. If the argument is '
                         'prepended with "@", then it will be treated as a '
                         'list containing the names of the biases, '
                         'one per line.',
-                        dest='biases', nargs='+')
+                        dest='biases',
+                        nargs='+'
+                        )
 
     parser.add_argument('--input-frames',
                         required=True,
@@ -92,11 +102,9 @@ if __name__ == '__main__':
                              'with "@", then it will be treated as a list '
                              'containing the names of the input frames, '
                              'one per line.',
-                        dest='frames', nargs='+')
-
-    parser.add_argument('--badcol-mask', required=True,
-                        help='List of badcol mask files.',
-                        dest='colmask', nargs=1)
+                        dest='frames',
+                        nargs='+'
+                        )
 
     parser.add_argument('--with-scamp-exec',
                         required=False,
@@ -124,6 +132,22 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    return args
+
+
+if __name__ == '__main__':
+    start = datetime.datetime.now()
+
+    args = parse_args()
+
+    logfile = "prepipe_process_ccd_{}.log".format(
+        start.strftime("%Y%m%d_%H:%M:%S")
+    )
+
+    logger = get_logger(args.debug, args.quiet, logfile=logfile)
+
+    args = parse_args()
+
     if args.mpi:
         from mpi4py import MPI
 
@@ -136,7 +160,6 @@ if __name__ == '__main__':
     flats = _read_clargs(args.flats)
     biases = _read_clargs(args.biases)
     frames = _read_clargs(args.frames)
-    masks = _read_clargs(['@' + args.colmask[0]])
     gaia_source = _read_clargs(args.gaia_source)
 
     # distribute the work to the worker processes
@@ -155,14 +178,13 @@ if __name__ == '__main__':
         myframes = frames
 
     # list a few astromatic config files
-    wd = os.path.dirname(__file__)
-    confdir = os.path.join(wd, 'config')
-    sexconf = os.path.join(confdir, 'scamp.sex')
-    nnwname = os.path.join(confdir, 'default.nnw')
-    filtname = os.path.join(confdir, 'default.conv')
-    paramname = os.path.join(confdir, 'scamp.param')
-    scampconf = os.path.join(confdir, 'scamp.conf')
-    missfitsconf = os.path.join(confdir, 'missfits.conf')
+    with Path(importlib.resources.path("dwfprepipe.data.config")) as confdir:
+        sexconf = confdir / 'scamp.sex'
+        nnwname = confdir / 'default.nnw'
+        filtname = confdir / 'default.conv'
+        paramname = confdir / 'scamp.param'
+        scampconf = confdir / 'scamp.conf'
+        missfitsconf = confdir / 'missfits.conf'
 
     # pass these constant options to sextractor
     clargs = ' -PARAMETERS_NAME %s -FILTER_NAME %s -STARNNW_NAME %s' % (
@@ -173,12 +195,14 @@ if __name__ == '__main__':
         with fits.open(frame) as hdul:
             ihdu, mhdu = overscan_and_mask_single(hdul[0])
             ccdnum_header = hdul[0].header["CCDNUM"]
-            bpm_name = (f"/home/fstars/dwf_prepipe/bpm/DECam_Master_20140209v2"
-                        f"_cd_{format(ccdnum_header, '02d')}.fits"
-                        )
+            bpm_file = f"DECam_Master_20140209v2_cd_{ccdnum_header:.0f}.fits"
+            with Path(importlib.resources.path("dwfprepipe.data.bpm")) as bpm:
+                bpm_name = bpm / bpm_file
+
         with (fits.open(flat) as fl,
               fits.open(bias) as b,
-              fits.open(bpm_name) as bp):
+              fits.open(bpm_name) as bp
+              ):
 
             fhdu = fl[0]
             bhdu = b[0]

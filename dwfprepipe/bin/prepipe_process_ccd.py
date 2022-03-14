@@ -11,6 +11,8 @@ import glob
 
 import astropy.io.fits as pyfits
 
+from dwfprepipe.utils import get_logger
+
 
 def check_path(path):
     """Check if path ends with a slash ('/'). Else, it adds a slash.
@@ -189,8 +191,8 @@ def parse_args():
     default_photepipe = '/fred/oz100/pipes/arest/DECAM/DEFAULT/rawdata/'
     default_pushdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/'
     default_localdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/untar/'
-    default_masks = '/home/fstars/dwf_prepipe/masks'
     default_scamp = '/home/fstars/scamp_gaia/bin/scamp'
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-p',
                         '--push_dir',
@@ -246,11 +248,6 @@ def parse_args():
                         action="store_true",
                         help='Turn off all non-essential debug output'
                         )
-    parser.add_argument('--mask-path',
-                        type=str,
-                        default=default_masks,
-                        help='Path to DECam masks',
-                        )
 
     parser.add_argument('--scamp-path',
                         type=str,
@@ -268,7 +265,7 @@ def main():
 
     args = parse_args()
 
-    logfile = "prepipe_push_{}.log".format(
+    logfile = "prepipe_process_ccd_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
     )
 
@@ -451,8 +448,7 @@ def main():
                            f"{preprocess_path}",
                            f"--input-frames={input_frames}",
                            f"--flat-frames={flat}",
-                           f"--bias-frames={flat}",
-                           f"--badcol-mask={args.masks_path}",
+                           f"--bias-frames={bias}",
                            f"--with-scamp-exec={args.scamp_path}",
                            f"--man-gaia={man_gaia}"
                            ])
