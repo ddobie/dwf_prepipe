@@ -1,13 +1,6 @@
-import os
 import time
-import math
-import sys
 import glob
-import warnings
 import subprocess
-import astropy.io.fits as pyfits
-
-import datetime
 import logging
 
 from pathlib import Path

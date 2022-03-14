@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 import os
 import datetime
-import time
 import shutil
 import argparse
 import subprocess
 import glob
-import sys
 # ~/.astropy/config/astropy.cfg was getting messed up -
 # seperate default (used by pipeloop?) and this
 # os.environ['XDG_CONFIG_HOME']='/home/fstars/.python3_config/'
 
 import astropy.io.fits as pyfits
-import astropy.units as u
 
 
 def check_path(path):

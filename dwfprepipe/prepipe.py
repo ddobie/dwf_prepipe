@@ -1,17 +1,10 @@
-import os
 import re
 import time
 import math
-import sys
 import glob
-import argparse
-import warnings
-import multiprocessing
 import subprocess
 import importlib.resources
 import logging
-
-import astropy.io.fits as pyfits
 
 from pathlib import Path
 from typing import Union, List
