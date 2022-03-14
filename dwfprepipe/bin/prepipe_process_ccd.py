@@ -246,11 +246,6 @@ def parse_args():
                         action="store_true",
                         help='Turn off all non-essential debug output'
                         )
-    parser.add_argument('--masks-path',
-                        type=str,
-                        default=default_masks,
-                        help='Path to DECam masks',
-                        )
 
     parser.add_argument('--scamp-path',
                         type=str,
@@ -447,16 +442,14 @@ def main():
     input_frames = dest_dir.replace("rawdata", "workspace") + newname
     man_gaia = f'fred/oz100/pipes/DWF_PIPE/GAIA_DR2/{Field}_gaia_dr2_LDAC.fits'
 
-    with importlib.resources.path('dwfprepipe.data','mask_paths.dat') as masks:
-        subprocess.check_call(["python",
-                               f"{preprocess_path}",
-                               f"--input-frames={input_frames}",
-                               f"--flat-frames={flat}",
-                               f"--bias-frames={bias",
-                               f"--badcol-mask={masks}",
-                               f"--with-scamp-exec={args.scamp_path}",
-                               f"--man-gaia={man_gaia}"
-                               ])
+    subprocess.check_call(["python",
+                           f"{preprocess_path}",
+                           f"--input-frames={input_frames}",
+                           f"--flat-frames={flat}",
+                           f"--bias-frames={bias}",
+                           f"--with-scamp-exec={args.scamp_path}",
+                           f"--man-gaia={man_gaia}"
+                           ])
 
     # Remove unescessary .jp2
     logger.info('Deleting: ' + untar_path + file_name)

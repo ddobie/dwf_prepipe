@@ -94,10 +94,6 @@ if __name__ == '__main__':
                              'one per line.',
                         dest='frames', nargs='+')
 
-    parser.add_argument('--badcol-mask', required=True,
-                        help='List of badcol mask files.',
-                        dest='colmask', nargs=1)
-
     parser.add_argument('--with-scamp-exec',
                         required=False,
                         default=None,
@@ -136,7 +132,6 @@ if __name__ == '__main__':
     flats = _read_clargs(args.flats)
     biases = _read_clargs(args.biases)
     frames = _read_clargs(args.frames)
-    masks = _read_clargs(['@' + args.colmask[0]])
     gaia_source = _read_clargs(args.gaia_source)
 
     # distribute the work to the worker processes
