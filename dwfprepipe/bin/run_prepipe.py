@@ -56,7 +56,11 @@ def parse_args():
     return args
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Run the script
+    """
+
     start = datetime.datetime.now()
 
     args = parse_args()
@@ -78,4 +82,8 @@ if __name__ == '__main__':
                       args.res_name
                       )
 
-    # prepipe.listen()
+    prepipe.listen()
+
+
+if __name__ == '__main__':
+    main()
