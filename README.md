@@ -6,6 +6,7 @@ This repository holds the code of DWF prepipe, a (mostly) python module to proce
 ### Current
 
 * Dougal Dobie
+* James Freeburn
 
 ### Former
 * Igor Andreoni
