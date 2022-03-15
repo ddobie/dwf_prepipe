@@ -142,13 +142,15 @@ def main():
 
     start = datetime.datetime.now()
 
-    args = parse_args()
-
     logfile = "prepipe_process_ccd_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
     )
 
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
+    
+    missfits_path = os.getenv("MISSFITS")
+    if missfits_path is None:
+        raise Exception("Path to MISSFITS is not specified")
 
     args = parse_args()
 
@@ -289,7 +291,7 @@ def main():
             subprocess.check_call(syscall.split())
 
             # fix the header
-            subprocess.check_call(["/home/fstars/missfits-2.8.0/bin/missfits",
+            subprocess.check_call([missfits_path,
                                    frame,
                                    frame.replace(".fits", ".head"),
                                    f"-c {missfitsconf}"

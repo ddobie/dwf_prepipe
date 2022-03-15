@@ -29,10 +29,11 @@ poetry install
 
 The package also relies on a number of environment variables that specify default values of arguments:
 * CTIO computers
-  * `DATA_DIR` is the directory on the CTIO computers where the compressed tarballs are placed, ready for transfer
-  * `QS` is the compression ratio to use
+  * `DATA_DIR` is the directory on the CTIO computers where the compressed tarballs are placed, ready for transfer. Typically should be set to `DATA_DIR=/home4/images/fits/2016B-0904/`.
+  * `QS` is the compression ratio to use. Typically should be set to `QS=0.000055`.
 * OzSTAR
-  * `PUSH_DIR` is the directory on ozstar where the compressed tarballs are pushed to, ready for unpacking.
+  * `PUSH_DIR` is the directory on ozstar where the compressed tarballs are pushed to, ready for unpacking. Typically should be set to `PUSH_DIR=/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/`.
+  * `MISSFITS` is the path to the missfits executable. Typically should be set to `MISSFITS=/home/fstars/missfits-2.8.0/bin/missfits`.
 
 ## Deploying to shared/remote servers
 1. Log in to the remote server and [generate a new ssh key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent#generating-a-new-ssh-key)
