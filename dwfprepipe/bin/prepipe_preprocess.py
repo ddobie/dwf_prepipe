@@ -147,7 +147,7 @@ def main():
     )
 
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
-    
+
     missfits_path = os.getenv("MISSFITS")
     if missfits_path is None:
         raise Exception("Path to MISSFITS is not specified")
