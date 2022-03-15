@@ -95,9 +95,9 @@ def parse_args():
 
 
 def main():
-    """"
+    """
     Run script
-    """"
+    """
 
     start = datetime.datetime.now()
 
