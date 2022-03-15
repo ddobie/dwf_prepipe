@@ -135,7 +135,11 @@ def parse_args():
     return args
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Run script
+    """"
+
     start = datetime.datetime.now()
 
     logfile = "prepipe_process_ccd_{}.log".format(
@@ -295,3 +299,7 @@ if __name__ == '__main__':
                                   )
 
             logger.info(f'scamp complete for {sciname}')
+
+
+if __name__ == '__main__':
+    main()
