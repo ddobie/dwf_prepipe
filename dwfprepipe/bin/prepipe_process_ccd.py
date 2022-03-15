@@ -5,6 +5,7 @@ import shutil
 import argparse
 import subprocess
 import glob
+import importlib
 # ~/.astropy/config/astropy.cfg was getting messed up -
 # seperate default (used by pipeloop?) and this
 # os.environ['XDG_CONFIG_HOME']='/home/fstars/.python3_config/'
