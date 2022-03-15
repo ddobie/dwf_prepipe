@@ -32,6 +32,7 @@ def parse_args():
 
     parser.add_argument('--run-date',
                         type=str,
+                        required=True,
                         help='Date of the run night and data being unpacked '
                              'in the form `utYYMMDD`.'
                         )
