@@ -11,6 +11,7 @@ This repository holds the code of DWF prepipe, a (mostly) python module to proce
 * Igor Andreoni
 * Danny Goldstein
 * Sara Webb
+* Jielai Zhang
 
 ## Installation Instructions
 `dwf_prepipe` can be installed using pip directly from github:
