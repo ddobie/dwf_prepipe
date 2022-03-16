@@ -184,13 +184,24 @@ def main():
         myframes = frames
 
     # list a few astromatic config files
-    with Path(importlib.resources.path("dwfprepipe.data.config")) as confdir:
-        sexconf = confdir / 'scamp.sex'
-        nnwname = confdir / 'default.nnw'
-        filtname = confdir / 'default.conv'
-        paramname = confdir / 'scamp.param'
-        scampconf = confdir / 'scamp.conf'
-        missfitsconf = confdir / 'missfits.conf'
+    sexconf = importlib.resources.path("dwfprepipe.data.config",
+                                       "scamp.sex"
+                                       )
+    nnwname = importlib.resources.path("dwfprepipe.data.config",
+                                       "default.nnw"
+                                       )
+    filtname = importlib.resources.path("dwfprepipe.data.config",
+                                        "default.conv"
+                                        )
+    paramname = importlib.resources.path("dwfprepipe.data.config",
+                                         "scamp.param"
+                                         )
+    scampconf = importlib.resources.path("dwfprepipe.data.config",
+                                         "scamp.conf"
+                                         )
+    missfitsconf = importlib.resources.path("dwfprepipe.data.config",
+                                            "missfits.conf"
+                                            )
 
     # pass these constant options to sextractor
     clargs = ' -PARAMETERS_NAME %s -FILTER_NAME %s -STARNNW_NAME %s' % (
@@ -202,8 +213,9 @@ def main():
             ihdu, mhdu = overscan_and_mask_single(hdul[0])
             ccdnum_header = hdul[0].header["CCDNUM"]
             bpm_file = f"DECam_Master_20140209v2_cd_{ccdnum_header:.0f}.fits"
-            with Path(importlib.resources.path("dwfprepipe.data.bpm")) as bpm:
-                bpm_name = bpm / bpm_file
+            bpm_name = importlib.resources.path("dwfprepipe.data.bpm",
+                                                bpm_file
+                                                )
 
         with (fits.open(flat) as fl,
               fits.open(bias) as b,
