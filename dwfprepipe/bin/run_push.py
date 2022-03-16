@@ -94,7 +94,11 @@ def parse_args():
     return args
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Run script
+    """
+
     start = datetime.datetime.now()
 
     args = parse_args()
@@ -106,8 +110,12 @@ if __name__ == '__main__':
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
     Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
-    exit()
+
     if Push.method == 'end of night':
         Push.process_endofnight(args.exp_min)
     else:
         Push.listen()
+
+
+if __name__ == '__main__':
+    main()

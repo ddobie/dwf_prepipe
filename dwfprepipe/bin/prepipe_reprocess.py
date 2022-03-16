@@ -1,5 +1,6 @@
 import os
 import argparse
+import datetime
 
 from dwfprepipe.prepipe import Prepipe
 from dwfprepipe.utils import get_logger
@@ -33,6 +34,7 @@ def parse_args():
 
     parser.add_argument('--run-date',
                         type=str,
+                        required=True,
                         help='Date of the run night and data being unpacked '
                              'in the form `utYYMMDD`.'
                         )
@@ -57,7 +59,11 @@ def parse_args():
     return args
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Run script
+    """
+
     start = datetime.datetime.now()
 
     args = parse_args()
@@ -89,3 +95,7 @@ if __name__ == '__main__':
         if file_name.is_file():
             logger.info(f'Reprocessing {file_name}...')
             prepipe.unpack(file_name)
+
+
+if __name__ == '__main__':
+    main()

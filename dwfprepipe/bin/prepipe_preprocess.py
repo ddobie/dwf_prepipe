@@ -135,16 +135,22 @@ def parse_args():
     return args
 
 
-if __name__ == '__main__':
-    start = datetime.datetime.now()
+def main():
+    """
+    Run script
+    """"
 
-    args = parse_args()
+    start = datetime.datetime.now()
 
     logfile = "prepipe_process_ccd_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
     )
 
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
+
+    missfits_path = os.getenv("MISSFITS")
+    if missfits_path is None:
+        raise Exception("Path to MISSFITS is not specified")
 
     args = parse_args()
 
@@ -178,13 +184,24 @@ if __name__ == '__main__':
         myframes = frames
 
     # list a few astromatic config files
-    with Path(importlib.resources.path("dwfprepipe.data.config")) as confdir:
-        sexconf = confdir / 'scamp.sex'
-        nnwname = confdir / 'default.nnw'
-        filtname = confdir / 'default.conv'
-        paramname = confdir / 'scamp.param'
-        scampconf = confdir / 'scamp.conf'
-        missfitsconf = confdir / 'missfits.conf'
+    sexconf = importlib.resources.path("dwfprepipe.data.config",
+                                       "scamp.sex"
+                                       )
+    nnwname = importlib.resources.path("dwfprepipe.data.config",
+                                       "default.nnw"
+                                       )
+    filtname = importlib.resources.path("dwfprepipe.data.config",
+                                        "default.conv"
+                                        )
+    paramname = importlib.resources.path("dwfprepipe.data.config",
+                                         "scamp.param"
+                                         )
+    scampconf = importlib.resources.path("dwfprepipe.data.config",
+                                         "scamp.conf"
+                                         )
+    missfitsconf = importlib.resources.path("dwfprepipe.data.config",
+                                            "missfits.conf"
+                                            )
 
     # pass these constant options to sextractor
     clargs = ' -PARAMETERS_NAME %s -FILTER_NAME %s -STARNNW_NAME %s' % (
@@ -196,8 +213,9 @@ if __name__ == '__main__':
             ihdu, mhdu = overscan_and_mask_single(hdul[0])
             ccdnum_header = hdul[0].header["CCDNUM"]
             bpm_file = f"DECam_Master_20140209v2_cd_{ccdnum_header:.0f}.fits"
-            with Path(importlib.resources.path("dwfprepipe.data.bpm")) as bpm:
-                bpm_name = bpm / bpm_file
+            bpm_name = importlib.resources.path("dwfprepipe.data.bpm",
+                                                bpm_file
+                                                )
 
         with (fits.open(flat) as fl,
               fits.open(bias) as b,
@@ -285,7 +303,7 @@ if __name__ == '__main__':
             subprocess.check_call(syscall.split())
 
             # fix the header
-            subprocess.check_call(["/home/fstars/missfits-2.8.0/bin/missfits",
+            subprocess.check_call([missfits_path,
                                    frame,
                                    frame.replace(".fits", ".head"),
                                    f"-c {missfitsconf}"
@@ -293,3 +311,7 @@ if __name__ == '__main__':
                                   )
 
             logger.info(f'scamp complete for {sciname}')
+
+
+if __name__ == '__main__':
+    main()
