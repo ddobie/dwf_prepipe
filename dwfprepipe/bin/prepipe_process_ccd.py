@@ -376,30 +376,31 @@ def main():
         workspace_dest_dir.mkdir(parents=True)
 
     # Move Uncompressed Fits File
-    logger.info(f'Moving {uncompressed_fits} to {dest_dir/newname}')
+    logger.info(f'Moving {uncompressed_fits} to {dest_dir / newname}')
     shutil.move(uncompressed_fits, dest_dir + newname)
 
     # Check for and prepare the calibration file lists
-    checkflats = glob.glob(dest_dir + "domeflat." + Filter + ".master.*")
+    flats_glob_str = str(dest_dir / f"domeflat.{Filter}.master.*")
+    checkflats = glob.glob(flats_glob_str)
 
     if checkflats == []:
-        logger.info(
+        logger.critical(
             "Prepipe Warning: No master flat detected! "
             "Looking for an individual flat.."
         )
-        checkflats = glob.glob(dest_dir + "domeflat." + Filter + "*")
+        checkflats = glob.glob(str(dest_dir / f"domeflat.{Filter}*"))
         if checkflats == []:
             raise Exception("Prepipe Error: No flats detected! Exiting...")
     # Use the first in the list
     flat = checkflats[0]
 
-    checkbias = glob.glob(dest_dir + "bias.master.*")
+    checkbias = glob.glob(str(dest_dir /"bias.master.*"))
     if checkbias == []:
         logger.info(
             "Prepipe Warning: No master bias detected! "
             "Looking for an individual bias.."
         )
-        checkbias = glob.glob(dest_dir + "bias.*")
+        checkbias = glob.glob(str(dest_dir / "bias.*"))
         if checkbias == []:
             raise Exception("Prepipe Error: No bias detected! Exiting...")
     # Uuse the first in the list
