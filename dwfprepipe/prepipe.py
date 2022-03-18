@@ -191,9 +191,7 @@ class Prepipe:
             self.sbatchccds(file_name, script_num, ccds)
 
     def unpack(self,
-               file_name: Union[Path, str],
-               ccdlist: Union[List[int], None] = None,
-               n_per_ccd: int = 15
+               file_name: Union[Path, str]
                ):
         """
         Uncompress new file + create & submit assosciated sbatch scripts
