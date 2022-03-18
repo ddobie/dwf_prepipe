@@ -312,30 +312,26 @@ def main():
     if(local_convert):
         # Move .jp2 to local directory
         logger.info(
-            'Moving ' +
-            untar_path +
-            file_name +
-            ' to ' +
-            local_dir +
-            file_name)
+            'Moving {untar_path / file_name} to {local_dir / file_name'
+        )
         shutil.move(untar_path / file_name, local_dir / file_name)
         untar_path = local_dir
 
     # Uncompress Fits on local Directory
-    uncompressed_fits = untar_path + DECam_Root + '.fits'
+    uncompressed_fits = untar_path / DECam_Root + '.fits'
     logger.info('--------*****')
     logger.info(uncompressed_fits)
     logger.info('Uncompressing: ' + file_name + ' in path: ' + untar_path)
     logger.info('--------*****')
     uncompress_call = ['j2f_DECam',
                        '-i',
-                       untar_path + file_name,
+                       untar_path / file_name,
                        '-o',
                        uncompressed_fits,
                        '-num_threads',
                        str(1)
                        ]
-    logger.info(" ".join(uncompress_call))
+    logger.info(f'Running {" ".join(uncompress_call)}')
     subprocess.run(uncompress_call)
 
     # Extract nescessary information from file for naming scheme
