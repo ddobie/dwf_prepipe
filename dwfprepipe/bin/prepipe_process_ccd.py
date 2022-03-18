@@ -194,6 +194,7 @@ def parse_args():
     default_pushdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/'
     default_localdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/untar/'
     default_scamp = '/home/fstars/scamp_gaia/bin/scamp'
+    default_gaia_dir = '/fred/oz100/pipes/DWF_PIPE/GAIA_DR2/'
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-p',
@@ -255,6 +256,12 @@ def parse_args():
                         type=str,
                         default=default_scamp,
                         help='Path to scamp',
+                        )
+    parser.add_argument('--gaia-dir',
+                        metavar='DIRECTORY',
+                        type=str,
+                        default=default_gaia_dir,
+                        help='Directory with Gaia data'
                         )
 
     args = parser.parse_args()
@@ -421,7 +428,9 @@ def main():
                                                "prepipe_preprocess.py"
                                                )
     
-    man_gaia = f'fred/oz100/pipes/DWF_PIPE/GAIA_DR2/{Field}_gaia_dr2_LDAC.fits'
+    man_gaia = args.gaia_dir / f'{Field}_gaia_dr2_LDAC.fits'
+    if not man_gaia.is_file():
+        raise Exception(f"--man-gaia path ({man_gaia}) does not exist!")
 
     subprocess.check_call(["python",
                            f"{preprocess_path}",
