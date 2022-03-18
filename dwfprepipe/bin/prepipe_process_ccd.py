@@ -377,35 +377,9 @@ def main():
     if not dest_dir.is_dir():
         logger.info(f'Creating Directory: {dest_dir}')
         dest_dir.mkdir(parents=True)
-
-    # Same as above but for the $workspace
-    if not os.path.isdir(ut_dir.replace("rawdata", "workspace")):
-        logger.info(
-            'Creating Directory: ' +
-            ut_dir.replace(
-                "rawdata",
-                "workspace"))
-        os.makedirs(ut_dir.replace("rawdata", "workspace"))
-    else:
-        logger.info(
-            'Directory Exists: ' +
-            ut_dir.replace(
-                "rawdata",
-                "workspace"))
-
-    if not os.path.isdir(dest_dir.replace("rawdata", "workspace")):
-        logger.info(
-            'Creating Directory: ' +
-            dest_dir.replace(
-                "rawdata",
-                "workspace"))
-        os.makedirs(dest_dir.replace("rawdata", "workspace"))
-    else:
-        logger.info(
-            'Directory Exists: ' +
-            dest_dir.replace(
-                "rawdata",
-                "workspace"))
+    if not workspace_dest_dir.is_dir():
+        logger.info(f'Creating Directory: {workspace_dest_dir}')
+        workspace_dest_dir.mkdir(parents=True)
 
     # Move Uncompressed Fits File
     logger.info('Renaming ' + file_name + ' to ' + newname)
