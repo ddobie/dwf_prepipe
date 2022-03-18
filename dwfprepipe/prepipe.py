@@ -255,11 +255,12 @@ class Prepipe:
                                           ppn=self.ppn,
                                           mem=self.mem,
                                           tmp=self.tmp,
+                                          ozstar_proj=self.ozstar_proj,
                                           res_str=self.res_str,
                                           jobs_str=jobs_str
                                           )
 
-        sbatch_file = f.open(sbatch_name, 'w')
+        sbatch_file = open(sbatch_name, 'w')
         sbatch_file.write(sbatch_text)
         sbatch_file.close()
 
