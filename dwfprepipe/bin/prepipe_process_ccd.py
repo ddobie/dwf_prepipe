@@ -382,8 +382,7 @@ def main():
         workspace_dest_dir.mkdir(parents=True)
 
     # Move Uncompressed Fits File
-    logger.info('Renaming ' + file_name + ' to ' + newname)
-    logger.info('And moving to: ' + dest_dir)
+    logger.info(f'Moving {uncompressed_fits} to {dest_dir/newname}')
     shutil.move(uncompressed_fits, dest_dir + newname)
 
     # Check for and prepare the calibration file lists
