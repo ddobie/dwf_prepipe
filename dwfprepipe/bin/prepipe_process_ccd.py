@@ -283,7 +283,7 @@ def main():
         if not local_dir.is_dir():
             logger.info(f'Creating Directory: {local_dir}')
             local_dir.mkdir()
-    local_dir = str(local_dir)
+    #local_dir = str(local_dir)
 
     photepipe_rawdir = Path(args.photepipe_rawdir)
     if photepipe_rawdir.stem != 'rawdata':
@@ -303,7 +303,7 @@ def main():
         photepipe_workspace.mkdir()
 
     push_dir = Path(args.push_dir)
-    untar_path = push_dir / 'untar/'
+    untar_path = push_dir / 'untar'
 
     file_name = args.input_file
     DECam_Root = file_name.split('.')[0]
@@ -318,7 +318,7 @@ def main():
             ' to ' +
             local_dir +
             file_name)
-        shutil.move(untar_path + file_name, local_dir + file_name)
+        shutil.move(untar_path / file_name, local_dir / file_name)
         untar_path = local_dir
 
     # Uncompress Fits on local Directory
@@ -413,9 +413,11 @@ def main():
 
     # Copy the raw image to the workspace, so that all the products
     # will be generated there.
+    input_frames = workspace_dest_dir / newname
+
     subprocess.check_call(['cp',
-                           dest_dir + newname,
-                           dest_dir.replace("rawdata", "workspace") + newname
+                           dest_dir / newname,
+                           input_frames
                            ]
                           )
 
@@ -423,7 +425,7 @@ def main():
     preprocess_path = importlib.resources.path("dwfprepipe.bin",
                                                "prepipe_preprocess.py"
                                                )
-    input_frames = dest_dir.replace("rawdata", "workspace") + newname
+    
     man_gaia = f'fred/oz100/pipes/DWF_PIPE/GAIA_DR2/{Field}_gaia_dr2_LDAC.fits'
 
     subprocess.check_call(["python",
