@@ -354,13 +354,11 @@ def main():
 
     obstype = pyfits.getval(uncompressed_fits, "OBSTYPE")
 
-    newname = Field + '.' + Filter + '.' + ut + \
-        '.' + str(exp) + '_' + ccd_num + '.fits'
+    newname = f"{Field}.{Filter}.{ut}.{exp}_{ccd_num}.fits"
     if((obstype == 'dome flat') or (obstype == 'domeflat')):
-        newname = 'domeflat.' + Filter + '.' + ut + \
-            '.' + str(exp) + '_' + ccd_num + '.fits'
+        newname = f"domeflat.{Filter}.{ut}.{exp}_{ccd_num}.fits"
     if((obstype == 'zero') or (obstype == 'bias')):
-        newname = 'bias.' + ut + '.' + str(exp) + '_' + ccd_num + '.fits'
+        newname = f"bias.{ut}.{exp}_{ccd_num}.fits"
 
     ut_dir = photepipe_rawdir / ut
     workspace_ut_dir = photepipe_workspace
