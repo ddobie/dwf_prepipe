@@ -3,7 +3,7 @@ import time
 import math
 import glob
 import subprocess
-import importlib
+import importlib.resources
 import logging
 
 from pathlib import Path
@@ -116,6 +116,7 @@ class Prepipe:
                         ppn: int = 16,
                         mem: str = '90G',
                         tmp: str = '4G',
+                        ozstar_proj: str = 'oz100'
                         ):
         """
         Set the variables to be used in the sbatch template
@@ -128,6 +129,7 @@ class Prepipe:
             ppn:
             mem: Total memory to request, defaults to 90G.
             tmp: Temporary memory to request, defaults to 4G.
+            ozstar_proj: ozstar project code.
 
         Returns:
             None
@@ -145,22 +147,24 @@ class Prepipe:
         self.mem = mem
         self.logger.debug(f"Setting tmp to {tmp}")
         self.tmp = tmp
+        self.logger.debug(f"Setting ozstar_proj to {ozstar_proj}")
+        self.ozstar_proj = ozstar_proj
         self.res_name = res_name
 
         if res_name is None:
             self.res_str = ''
-            self.logger.warning("Warning: not using a reservation")
+            self.logger.warning("NO RESERVATION SPECIFIED. RUNNING WITHOUT.")
         else:
             self.res_str = '#SBATCH --reservation={}'.format(self.res_name)
             self.logger.debug(f"Setting res_name to {res_name}")
 
-    def unpack(self,
-               file_name: Union[Path, str],
-               ccdlist: Union[List[int], None] = None,
-               n_per_ccd: int = 15
-               ):
+    def process_file(self,
+                     file_name: Union[Path, str],
+                     ccdlist: Union[List[int], None] = None,
+                     n_per_ccd: int = 15
+                     ):
         """
-        Uncompress new file + create & submit assosciated sbatch scripts
+        Run the complete processing on a single file
 
         Args:
             file_name: File to unpack
@@ -176,31 +180,47 @@ class Prepipe:
 
         file_name = Path(file_name)
 
-        # Untar new file
+        unpacked = self.unpack(file_name)
+        if not unpacked:
+            return
+
+        # Create Qsub scripts for new file with n_per_ccd jobs per script
+        n_scripts = math.ceil(len(ccdlist) / n_per_ccd)
+        self.logger.info(f'Writing {n_scripts} sbatch scripts for {file_name}')
+
+        for script_num in range(n_scripts):
+            ccds = ccdlist[n_per_ccd * script_num:(script_num + 1) * n_per_ccd]
+            self.sbatchccds(file_name, script_num, ccds)
+
+    def unpack(self,
+               file_name: Union[Path, str]
+               ):
+        """
+        Uncompress new file + create & submit assosciated sbatch scripts
+
+        Args:
+            file_name: File to unpack
+
+        Returns:
+            bool
+        """
+
         self.logger.info(f'Unpacking: {file_name}')
         try:
             subprocess_call = ['tar',
                                '-xf',
-                               push_path + file_name,
+                               self.path_to_watch / file_name,
                                '-C',
-                               untar_path
+                               self.path_to_untar
                                ]
             self.logger.debug(f"Running {subprocess_call}")
             subprocess.check_call(subprocess_call)
 
         except subprocess.CalledProcessError:
             self.logger.critical(f"FAILED UN-TAR {file_name}. Skipping...")
-            pass
+            return False
 
-        Exposure = DECam_Root.split('_')[1]
-
-        # Create Qsub scripts for new file with n_per_ccd jobs per script
-        n_scripts = math.ceil(len(ccdlist) / n_per_ccd)
-        self.logger.info(f'Writing {nscripts} sbatch scripts for {file_name}')
-
-        for script_num in range(n_scripts):
-            ccds = ccdlist[n_per_ccd * script_num:(script_num + 1) * n_per_ccd]
-            dwf_prepipe_sbatchccds(filename, script_num, ccds)
+        return True
 
     def _write_sbatch(self,
                       sbatch_name: Union[str, Path],
@@ -233,11 +253,12 @@ class Prepipe:
                                           ppn=self.ppn,
                                           mem=self.mem,
                                           tmp=self.tmp,
+                                          ozstar_proj=self.ozstar_proj,
                                           res_str=self.res_str,
                                           jobs_str=jobs_str
                                           )
 
-        sbatch_file = f.open(sbatch_name, 'w')
+        sbatch_file = open(sbatch_name, 'w')
         sbatch_file.write(sbatch_text)
         sbatch_file.close()
 
@@ -263,7 +284,7 @@ class Prepipe:
 
         image_list = [f'{DECam_root}_{f}.jp2' for f in ccds]
 
-        sbatch_name = sbatch_path / f'{qroot}.sbatch'
+        sbatch_name = self.path_to_sbatch / f'{qroot}.sbatch'
 
         self.logger.info(f"Creating Script: {sbatch_name} "
                          f"for CCDs {min(ccds)} to {max(ccds)}"
@@ -279,6 +300,7 @@ class Prepipe:
         self._write_sbatch(sbatch_name, qroot, jobs_str)
 
         if sbatch_name.is_file():
+            self.logger.debug(f"Running {sbatch_name}")
             subprocess.run(['sbatch', str(sbatch_name)])
         else:
             logger.critical(f"{sbatch_name} does not exist!")
