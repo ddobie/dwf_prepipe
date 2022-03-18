@@ -154,13 +154,13 @@ class Prepipe:
             self.res_str = '#SBATCH --reservation={}'.format(self.res_name)
             self.logger.debug(f"Setting res_name to {res_name}")
 
-    def unpack(self,
-               file_name: Union[Path, str],
-               ccdlist: Union[List[int], None] = None,
-               n_per_ccd: int = 15
-               ):
+    def process_file(self,
+                     file_name: Union[Path, str],
+                     ccdlist: Union[List[int], None] = None,
+                     n_per_ccd: int = 15
+                     ):
         """
-        Uncompress new file + create & submit assosciated sbatch scripts
+        Run the complete processing on a single file
 
         Args:
             file_name: File to unpack
@@ -175,32 +175,54 @@ class Prepipe:
             ccdlist = list(map(str, range(1, 60)))
 
         file_name = Path(file_name)
+        
+        unpacked = self.unpack(file_name)
+        if not unpacked:
+            return
+        
+        Exposure = DECam_Root.split('_')[1]
 
-        # Untar new file
+        # Create Qsub scripts for new file with n_per_ccd jobs per script
+        n_scripts = math.ceil(len(ccdlist) / n_per_ccd)
+        self.logger.info(f'Writing {n_scripts} sbatch scripts for {file_name}')
+
+        for script_num in range(n_scripts):
+            ccds = ccdlist[n_per_ccd * script_num:(script_num + 1) * n_per_ccd]
+            self.sbatchccds(file_name, script_num, ccds)
+
+    def unpack(self,
+               file_name: Union[Path, str],
+               ccdlist: Union[List[int], None] = None,
+               n_per_ccd: int = 15
+               ):
+        """
+        Uncompress new file + create & submit assosciated sbatch scripts
+
+        Args:
+            file_name: File to unpack
+
+        Returns:
+            bool
+        """
+
         self.logger.info(f'Unpacking: {file_name}')
         try:
             subprocess_call = ['tar',
                                '-xf',
-                               push_path + file_name,
+                               self.path_to_watch / file_name,
                                '-C',
-                               untar_path
+                               self.path_to_untar
                                ]
             self.logger.debug(f"Running {subprocess_call}")
             subprocess.check_call(subprocess_call)
 
         except subprocess.CalledProcessError:
             self.logger.critical(f"FAILED UN-TAR {file_name}. Skipping...")
-            pass
+            return False
+        
+        return True
 
-        Exposure = DECam_Root.split('_')[1]
-
-        # Create Qsub scripts for new file with n_per_ccd jobs per script
-        n_scripts = math.ceil(len(ccdlist) / n_per_ccd)
-        self.logger.info(f'Writing {nscripts} sbatch scripts for {file_name}')
-
-        for script_num in range(n_scripts):
-            ccds = ccdlist[n_per_ccd * script_num:(script_num + 1) * n_per_ccd]
-            dwf_prepipe_sbatchccds(filename, script_num, ccds)
+        
 
     def _write_sbatch(self,
                       sbatch_name: Union[str, Path],
