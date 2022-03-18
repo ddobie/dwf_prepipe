@@ -149,7 +149,7 @@ class Prepipe:
 
         if res_name is None:
             self.res_str = ''
-            self.logger.warning("Warning: not using a reservation")
+            self.logger.warning("NO RESERVATION SPECIFIED. RUNNING WITHOUT.")
         else:
             self.res_str = '#SBATCH --reservation={}'.format(self.res_name)
             self.logger.debug(f"Setting res_name to {res_name}")
