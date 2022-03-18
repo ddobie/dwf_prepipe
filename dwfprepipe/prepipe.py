@@ -3,7 +3,7 @@ import time
 import math
 import glob
 import subprocess
-import importlib
+import importlib.resources
 import logging
 
 from pathlib import Path
