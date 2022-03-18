@@ -180,8 +180,6 @@ class Prepipe:
         if not unpacked:
             return
         
-        Exposure = DECam_Root.split('_')[1]
-
         # Create Qsub scripts for new file with n_per_ccd jobs per script
         n_scripts = math.ceil(len(ccdlist) / n_per_ccd)
         self.logger.info(f'Writing {n_scripts} sbatch scripts for {file_name}')
@@ -283,7 +281,7 @@ class Prepipe:
 
         image_list = [f'{DECam_root}_{f}.jp2' for f in ccds]
 
-        sbatch_name = sbatch_path / f'{qroot}.sbatch'
+        sbatch_name = self.path_to_sbatch / f'{qroot}.sbatch'
 
         self.logger.info(f"Creating Script: {sbatch_name} "
                          f"for CCDs {min(ccds)} to {max(ccds)}"
