@@ -116,6 +116,7 @@ class Prepipe:
                         ppn: int = 16,
                         mem: str = '90G',
                         tmp: str = '4G',
+                        ozstar_proj: str = 'oz100'
                         ):
         """
         Set the variables to be used in the sbatch template
@@ -128,6 +129,7 @@ class Prepipe:
             ppn:
             mem: Total memory to request, defaults to 90G.
             tmp: Temporary memory to request, defaults to 4G.
+            ozstar_proj: ozstar project code.
 
         Returns:
             None
@@ -145,6 +147,8 @@ class Prepipe:
         self.mem = mem
         self.logger.debug(f"Setting tmp to {tmp}")
         self.tmp = tmp
+        self.logger.debug(f"Setting ozstar_proj to {ozstar_proj}")
+        self.ozstar_proj = ozstar_proj
         self.res_name = res_name
 
         if res_name is None:
