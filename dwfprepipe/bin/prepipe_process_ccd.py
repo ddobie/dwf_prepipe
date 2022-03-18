@@ -208,7 +208,6 @@ def parse_args():
 
     parser.add_argument('-l',
                         '--local',
-                        metavar='DIRECTORY',
                         type=bool,
                         default=True,
                         help='Use node local storage for jpg '
@@ -284,9 +283,8 @@ def main():
 
     # Set local Directory and check to see if it exists
     local_dir = Path(args.local_dir)
-    local_convert = args.local
 
-    if local_convert:
+    if args.local:
         if not local_dir.is_dir():
             logger.info(f'Creating Directory: {local_dir}')
             local_dir.mkdir()
@@ -315,7 +313,7 @@ def main():
     DECam_Root = file_name.split('.')[0]
     ccd_num = DECam_Root.split('_')[2]
 
-    if(local_convert):
+    if args.local:
         # Move .jp2 to local directory
         logger.info(
             'Moving {untar_path / file_name} to {local_dir / file_name'
