@@ -179,11 +179,11 @@ class Prepipe:
             ccdlist = list(map(str, range(1, 60)))
 
         file_name = Path(file_name)
-        
+
         unpacked = self.unpack(file_name)
         if not unpacked:
             return
-        
+
         # Create Qsub scripts for new file with n_per_ccd jobs per script
         n_scripts = math.ceil(len(ccdlist) / n_per_ccd)
         self.logger.info(f'Writing {n_scripts} sbatch scripts for {file_name}')
@@ -219,10 +219,8 @@ class Prepipe:
         except subprocess.CalledProcessError:
             self.logger.critical(f"FAILED UN-TAR {file_name}. Skipping...")
             return False
-        
-        return True
 
-        
+        return True
 
     def _write_sbatch(self,
                       sbatch_name: Union[str, Path],
