@@ -196,7 +196,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-p',
-                        '--push_dir',
+                        '--push-dir',
                         metavar='DIRECTORY',
                         type=str,
                         default=default_pushdir,
@@ -229,13 +229,13 @@ def parse_args():
                         )
 
     parser.add_argument('-i',
-                        '--input_file',
+                        '--input-file',
                         type=str,
                         help='input .jp2 file'
                         )
 
     parser.add_argument('-d',
-                        '--input_date',
+                        '--input-date',
                         type=str,
                         help='date for files during run'
                         )
