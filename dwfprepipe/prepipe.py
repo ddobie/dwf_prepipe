@@ -301,6 +301,7 @@ class Prepipe:
         self._write_sbatch(sbatch_name, qroot, jobs_str)
 
         if sbatch_name.is_file():
+            self.logger.debug(f"Running {sbatch_name}")
             subprocess.run(['sbatch', str(sbatch_name)])
         else:
             logger.critical(f"{sbatch_name} does not exist!")
