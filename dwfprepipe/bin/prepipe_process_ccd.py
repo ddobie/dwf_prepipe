@@ -290,7 +290,6 @@ def main():
         if not local_dir.is_dir():
             logger.info(f'Creating Directory: {local_dir}')
             local_dir.mkdir()
-    #local_dir = str(local_dir)
 
     photepipe_rawdir = Path(args.photepipe_rawdir)
     if photepipe_rawdir.stem != 'rawdata':
@@ -304,7 +303,7 @@ def main():
 
     photepipe_workspace = Path(args.photepipe_rawdir.replace('rawdata',
                                                              'workspace')
-                                                             )
+                               )
     if not photepipe_workspace.is_dir():
         logger.info(f'Creating Directory: {photepipe_workspace}')
         photepipe_workspace.mkdir()
@@ -369,10 +368,10 @@ def main():
 
     ut_dir = photepipe_rawdir / ut
     workspace_ut_dir = photepipe_workspace
-    
-    #if not ut_dir.is_dir():
+
+    # if not ut_dir.is_dir():
     #    ut_dir.mkdir()
-    
+
     dest_dir = ut_dir / ccd_num
     workspace_dest_dir = workspace_ut_dir / ccd_num
     if not dest_dir.is_dir():
@@ -401,7 +400,7 @@ def main():
     # Use the first in the list
     flat = checkflats[0]
 
-    checkbias = glob.glob(str(dest_dir /"bias.master.*"))
+    checkbias = glob.glob(str(dest_dir / "bias.master.*"))
     if checkbias == []:
         logger.info(
             "Prepipe Warning: No master bias detected! "
@@ -410,7 +409,7 @@ def main():
         checkbias = glob.glob(str(dest_dir / "bias.*"))
         if checkbias == []:
             raise Exception("Prepipe Error: No bias detected! Exiting...")
-    # Uuse the first in the list
+    # Use the first in the list
     bias = checkbias[0]
 
     # Copy the raw image to the workspace, so that all the products
@@ -424,10 +423,12 @@ def main():
                           )
 
     # Call Danny's preprocess code for CCD reduction
-    preprocess_path = importlib.resources.path("dwfprepipe.bin",
-                                               "prepipe_preprocess.py"
-                                               )
-    
+    with (
+          importlib.resources.path("dwfprepipe.bin",
+                                   "prepipe_preprocess.py")
+         ) as path:
+        preprocess_path = path
+
     man_gaia = args.gaia_dir / f'{Field}_gaia_dr2_LDAC.fits'
     if not man_gaia.is_file():
         raise Exception(f"--man-gaia path ({man_gaia}) does not exist!")
@@ -442,8 +443,9 @@ def main():
                            ])
 
     # Remove unescessary .jp2
-    logger.info('Deleting: ' + untar_path + file_name)
-    subprocess.run(['rm', untar_path + file_name])
+    jp2_path = untar_path + file_name
+    logger.info(f'Deleting: {jp2_path}')
+    subprocess.run(['rm', str(jp2_path)])
 
 
 if __name__ == '__main__':
