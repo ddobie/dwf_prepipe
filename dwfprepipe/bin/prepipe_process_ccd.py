@@ -13,6 +13,7 @@ import importlib.resources
 import astropy.io.fits as pyfits
 
 from dwfprepipe.utils import get_logger
+from pathlib import Path
 
 
 def check_path(path):
@@ -285,13 +286,24 @@ def main():
     local_dir = str(local_dir)
 
     photepipe_rawdir = Path(args.photepipe_rawdir)
+    if photepipe_rawdir.stem != 'rawdata':
+        logger.critical(f"Photepipe raw data directory should end with "
+                        f"'rawdata'. Is instead {photepipe_rawdir}."
+                        )
+        exit()
     if not photepipe_rawdir.is_dir():
         logger.info(f'Creating Directory: {photepipe_rawdir}')
         photepipe_rawdir.mkdir()
-    photepipe_rawdir = str(photepipe_rawdir)
 
-    push_dir = args.push_dir
-    untar_path = check_path(push_dir + 'untar/')
+    photepipe_workspace = Path(args.photepipe_rawdir.replace('rawdata',
+                                                             'workspace')
+                                                             )
+    if not photepipe_workspace.is_dir():
+        logger.info(f'Creating Directory: {photepipe_workspace}')
+        photepipe_workspace.mkdir()
+
+    push_dir = Path(args.push_dir)
+    untar_path = push_dir / 'untar/'
 
     file_name = args.input_file
     DECam_Root = file_name.split('.')[0]
@@ -354,21 +366,17 @@ def main():
     if((obstype == 'zero') or (obstype == 'bias')):
         newname = 'bias.' + ut + '.' + str(exp) + '_' + ccd_num + '.fits'
 
-    ut_dir = check_path(photepipe_rawdir + ut + '/')
-    dest_dir = check_path(ut_dir + ccd_num + '/')
-
-    # Check to see if UT date & CCD Directories have been created
-    if not os.path.isdir(ut_dir):
-        logger.info('Creating Directory: ' + ut_dir)
-        os.makedirs(ut_dir)
-    else:
-        logger.info('Directory Exists: ' + ut_dir)
-
-    if not os.path.isdir(dest_dir):
-        logger.info('Creating Directory: ' + dest_dir)
-        os.makedirs(dest_dir)
-    else:
-        logger.info('Directory Exists: ' + dest_dir)
+    ut_dir = photepipe_rawdir / ut
+    workspace_ut_dir = photepipe_workspace
+    
+    #if not ut_dir.is_dir():
+    #    ut_dir.mkdir()
+    
+    dest_dir = ut_dir / ccd_num
+    workspace_dest_dir = workspace_ut_dir / ccd_num
+    if not dest_dir.is_dir():
+        logger.info(f'Creating Directory: {dest_dir}')
+        dest_dir.mkdir(parents=True)
 
     # Same as above but for the $workspace
     if not os.path.isdir(ut_dir.replace("rawdata", "workspace")):
