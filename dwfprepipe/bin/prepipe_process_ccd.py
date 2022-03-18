@@ -291,10 +291,10 @@ def main():
 
     photepipe_rawdir = Path(args.photepipe_rawdir)
     if photepipe_rawdir.stem != 'rawdata':
-        logger.critical(f"Photepipe raw data directory should end with "
+        raise Exception(f"Photepipe raw data directory should end with "
                         f"'rawdata'. Is instead {photepipe_rawdir}."
                         )
-        exit()
+
     if not photepipe_rawdir.is_dir():
         logger.info(f'Creating Directory: {photepipe_rawdir}')
         photepipe_rawdir.mkdir()
