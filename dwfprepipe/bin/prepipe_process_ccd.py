@@ -317,6 +317,12 @@ def main():
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
     args = parse_args()
+    
+    if not Path(args.scamp_path).is_file():
+        raise Exception(f"{args.scamp_path} does not exist!")
+    
+    if not Path(args.gaia_dir).is_dir():
+        raise Exception(f"{args.gaia_dir} does not exist!")
 
     # Set local Directory and check to see if it exists
     local_dir = Path(args.local_dir)
@@ -466,7 +472,7 @@ def main():
 
     man_gaia = args.gaia_dir / f'{Field}_gaia_dr2_LDAC.fits'
     if not man_gaia.is_file():
-        raise Exception(f"--man-gaia path ({man_gaia}) does not exist!")
+        raise Exception(f"Path to Gaia data ({man_gaia}) does not exist!")
 
     subprocess.check_call(["python",
                            f"{preprocess_path}",
