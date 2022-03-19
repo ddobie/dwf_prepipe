@@ -209,7 +209,7 @@ def parse_args():
     parser.add_argument('-l',
                         '--local',
                         type=bool,
-                        default=True,
+                        default=False,
                         help='Use node local storage for jpg '
                              'to fits conversion?'
                         )
@@ -217,9 +217,9 @@ def parse_args():
     parser.add_argument('--local-dir',
                         metavar='DIRECTORY',
                         type=str,
-                        default=default_localdir,
-                        help='Use node local storage for jpg '
-                             'to fits conversion? (1 or 0)'
+                        default=None,
+                        help='Local directory to untar to. If None, defaults '
+                             'to push_dir / untar.'
                         )
 
     parser.add_argument('--photepipe-rawdir',
