@@ -190,17 +190,12 @@ def get_shift_field(ut, ccd, exp, Field):
 
 
 def parse_args():
-    default_photepipe = '/fred/oz100/pipes/arest/DECAM/DEFAULT/rawdata/'
-    default_pushdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/'
-    default_scamp = '/home/fstars/scamp_gaia/bin/scamp'
-    default_gaia_dir = '/fred/oz100/pipes/DWF_PIPE/GAIA_DR2/'
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-p',
                         '--push-dir',
                         metavar='DIRECTORY',
                         type=str,
-                        default=default_pushdir,
+                        default=None,
                         help='Directory where tarballs of compressed '
                              'files are placed'
                         )
@@ -224,7 +219,7 @@ def parse_args():
     parser.add_argument('--photepipe-rawdir',
                         metavar='DIRECTORY',
                         type=str,
-                        default=default_photepipe,
+                        default=None,
                         help=''
                         )
 
@@ -252,13 +247,13 @@ def parse_args():
 
     parser.add_argument('--scamp-path',
                         type=str,
-                        default=default_scamp,
+                        default=None,
                         help='Path to scamp',
                         )
     parser.add_argument('--gaia-dir',
                         metavar='DIRECTORY',
                         type=str,
-                        default=default_gaia_dir,
+                        default=None,
                         help='Directory with Gaia data'
                         )
 
@@ -330,7 +325,7 @@ def main():
         if not local_dir.is_dir():
             logger.info(f'Creating Directory: {local_dir}')
             local_dir.mkdir()
-
+    
     photepipe_rawdir = Path(args.photepipe_rawdir)
     if photepipe_rawdir.stem != 'rawdata':
         raise Exception(f"Photepipe raw data directory should end with "
