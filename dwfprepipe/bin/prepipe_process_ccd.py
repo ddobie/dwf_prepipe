@@ -202,8 +202,7 @@ def parse_args():
 
     parser.add_argument('-l',
                         '--local',
-                        type=bool,
-                        default=False,
+                        action="store_true",
                         help='Use node local storage for jpg '
                              'to fits conversion?'
                         )
