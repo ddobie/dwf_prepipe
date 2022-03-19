@@ -258,7 +258,7 @@ def parse_args():
                         )
 
     args = parser.parse_args()
-    
+
     if args.push_dir is None:
         default_push_dir = os.getenv("PUSH_DIR")
         if default_push_dir is None:
@@ -268,7 +268,7 @@ def parse_args():
                             )
         else:
             args.push_dir = default_push_dir
-    
+
     if args.photepipe_rawdir is None:
         default_photepipe_rawdir = os.getenv("PHOTEPIPE_RAWDIR")
         if default_photepipe_rawdir is None:
@@ -279,7 +279,7 @@ def parse_args():
                             )
         else:
             args.photepipe_rawdir = default_photepipe_rawdir
-    
+
     if args.scamp_path is None:
         default_scamp_path = os.getenv("SCAMP_PATH")
         if default_scamp_path is None:
@@ -290,7 +290,7 @@ def parse_args():
                             )
         else:
             args.scamp_path = default_scamp_path
-    
+
     if args.gaia_dir is None:
         default_gaia_dir = os.getenv("GAIA_DIR")
         if default_scamp_path is None:
@@ -300,7 +300,7 @@ def parse_args():
                             "environment variable."
                             )
         else:
-            args.gaia_dir  = default_gaia_dir
+            args.gaia_dir = default_gaia_dir
 
     return args
 
@@ -317,10 +317,10 @@ def main():
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
     args = parse_args()
-    
+
     if not Path(args.scamp_path).is_file():
         raise Exception(f"{args.scamp_path} does not exist!")
-    
+
     if not Path(args.gaia_dir).is_dir():
         raise Exception(f"{args.gaia_dir} does not exist!")
 
@@ -331,7 +331,7 @@ def main():
         if not local_dir.is_dir():
             logger.info(f'Creating Directory: {local_dir}')
             local_dir.mkdir()
-    
+
     photepipe_rawdir = Path(args.photepipe_rawdir)
     if photepipe_rawdir.stem != 'rawdata':
         raise Exception(f"Photepipe raw data directory should end with "
@@ -465,9 +465,9 @@ def main():
 
     # Call Danny's preprocess code for CCD reduction
     with (
-          importlib.resources.path("dwfprepipe.bin",
-                                   "prepipe_preprocess.py")
-         ) as path:
+        importlib.resources.path("dwfprepipe.bin",
+                                 "prepipe_preprocess.py")
+    ) as path:
         preprocess_path = path
 
     man_gaia = args.gaia_dir / f'{Field}_gaia_dr2_LDAC.fits'
