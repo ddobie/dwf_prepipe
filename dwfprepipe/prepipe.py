@@ -292,10 +292,16 @@ class Prepipe:
         with importlib.resources.path(
             "dwfprepipe.bin", "prepipe_process_ccd.py"
         ) as process_ccd_script:
-            jobs_str_temp = f'{process_ccd_script} -i {{0}} -d {{1}} &\n'
+            jobs_str_temp = f'{process_ccd_script} ' \
+                            f'-i {{0}} ' \
+                            f'-d {self.run_date} ' \
+                            f'-p {self.path_to_watch} ' \
+                            f'-l --local-dir {self.path_to_untar}' \
+                            '&\n'
+
         jobs_str = ''
         for image in image_list:
-            jobs_str += jobs_str_temp.format(image, self.run_date)
+            jobs_str += jobs_str_temp.format(image)
 
         self._write_sbatch(sbatch_name, qroot, jobs_str)
 
