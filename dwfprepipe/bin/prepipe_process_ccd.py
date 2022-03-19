@@ -192,7 +192,6 @@ def get_shift_field(ut, ccd, exp, Field):
 def parse_args():
     default_photepipe = '/fred/oz100/pipes/arest/DECAM/DEFAULT/rawdata/'
     default_pushdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/'
-    default_localdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/untar/'
     default_scamp = '/home/fstars/scamp_gaia/bin/scamp'
     default_gaia_dir = '/fred/oz100/pipes/DWF_PIPE/GAIA_DR2/'
 
@@ -264,6 +263,49 @@ def parse_args():
                         )
 
     args = parser.parse_args()
+    
+    if args.push_dir is None:
+        default_push_dir = os.getenv("PUSH_DIR")
+        if default_push_dir is None:
+            raise Exception("No Push directory provided. Please set it by "
+                            "passing the --push-dir argument, or by setting "
+                            "the PUSH_DIR environment variable."
+                            )
+        else:
+            args.push_dir = default_push_dir
+    
+    if args.photepipe_rawdir is None:
+        default_photepipe_rawdir = os.getenv("PHOTEPIPE_RAWDIR")
+        if default_photepipe_rawdir is None:
+            raise Exception("No Photepipe raw data directory provided. Please "
+                            "set it by passing the --photepipe-rawdir "
+                            "argument, or by setting the PHOTEPIPE_RAWDIR "
+                            "environment variable."
+                            )
+        else:
+            args.photepipe_rawdir = default_photepipe_rawdir
+    
+    if args.scamp_path is None:
+        default_scamp_path = os.getenv("SCAMP_PATH")
+        if default_scamp_path is None:
+            raise Exception("No path to SCAMP provided. Please "
+                            "set it by passing the --scamp-path "
+                            "argument, or by setting the SCAMP_PATH "
+                            "environment variable."
+                            )
+        else:
+            args.scamp_path = default_scamp_path
+    
+    if args.gaia_dir is None:
+        default_gaia_dir = os.getenv("GAIA_DIR")
+        if default_scamp_path is None:
+            raise Exception("No path to Gaia data provided. Please "
+                            "set it by passing the --gaia-dir "
+                            "argument, or by setting the GAIA_DIR "
+                            "environment variable."
+                            )
+        else:
+            args.gaia_dir  = default_gaia_dir
 
     return args
 
