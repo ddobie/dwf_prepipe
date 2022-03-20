@@ -424,7 +424,7 @@ def main():
 
     # Move Uncompressed Fits File
     logger.info(f'Moving {uncompressed_fits} to {dest_dir / newname}')
-    shutil.move(uncompressed_fits, dest_dir + newname)
+    shutil.move(uncompressed_fits, dest_dir / newname)
 
     # Check for and prepare the calibration file lists
     flats_glob_str = str(dest_dir / f"domeflat.{Filter}.master.*")
