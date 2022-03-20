@@ -368,7 +368,7 @@ def main():
     uncompressed_fits = untar_path / fits_file
     logger.info('--------*****')
     logger.info(uncompressed_fits)
-    logger.info('Uncompressing: ' + file_name + ' in path: ' + untar_path)
+    logger.info('Uncompressing: {file_name} in path: {untar_path}')
     logger.info('--------*****')
     uncompress_call = ['j2f_DECam',
                        '-i',
