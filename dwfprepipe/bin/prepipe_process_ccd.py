@@ -372,9 +372,9 @@ def main():
     logger.info('--------*****')
     uncompress_call = ['j2f_DECam',
                        '-i',
-                       untar_path / file_name,
+                       str(untar_path / file_name),
                        '-o',
-                       uncompressed_fits,
+                       str(uncompressed_fits),
                        '-num_threads',
                        str(1)
                        ]
