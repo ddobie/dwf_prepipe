@@ -364,7 +364,8 @@ def main():
         untar_path = local_dir
 
     # Uncompress Fits on local Directory
-    uncompressed_fits = untar_path / DECam_Root + '.fits'
+    fits_file = DECam_Root + '.fits'
+    uncompressed_fits = untar_path / fits_file
     logger.info('--------*****')
     logger.info(uncompressed_fits)
     logger.info('Uncompressing: ' + file_name + ' in path: ' + untar_path)
