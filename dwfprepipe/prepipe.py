@@ -296,7 +296,7 @@ class Prepipe:
                             f'-i {{0}} ' \
                             f'-d {self.run_date} ' \
                             f'-p {self.path_to_watch} ' \
-                            f'-l --local-dir {self.path_to_untar}' \
+                            f'-l --local-dir {self.path_to_untar} ' \
                             '&\n'
 
         jobs_str = ''
@@ -307,7 +307,7 @@ class Prepipe:
 
         if sbatch_name.is_file():
             self.logger.debug(f"Running {sbatch_name}")
-            subprocess.run(['sbatch', str(sbatch_name)])
+            #subprocess.run(['sbatch', str(sbatch_name)])
         else:
             logger.critical(f"{sbatch_name} does not exist!")
 
