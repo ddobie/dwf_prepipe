@@ -224,10 +224,12 @@ def main():
         with fits.open(frame) as hdul:
             ihdu, mhdu = overscan_and_mask_single(hdul[0])
             ccdnum_header = hdul[0].header["CCDNUM"]
+
             bpm_file = f"DECam_Master_20140209v2_cd_{ccdnum_header:.0f}.fits"
-            bpm_name = importlib.resources.path("dwfprepipe.data.bpm",
-                                                bpm_file
-                                                )
+            with importlib.resources.path(
+                "dwfprepipe.data.bpm", bpm_file
+            ) as path:
+                bpm_name = path
 
         with (fits.open(flat) as fl,
               fits.open(bias) as b,
