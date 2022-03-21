@@ -308,7 +308,7 @@ class Prepipe:
 
         self._write_sbatch(sbatch_name, qroot, jobs_str)
 
-        if dry_run:
+        if self.dry_run:
             self.logger.info("Dry run selected, not submitting sbatch jobs")
         else:
             if sbatch_name.is_file():
