@@ -307,8 +307,6 @@ def parse_args():
 def main():
     start = datetime.datetime.now()
 
-    args = parse_args()
-
     logfile = "prepipe_process_ccd_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
     )
@@ -316,6 +314,10 @@ def main():
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
     args = parse_args()
+
+    logging.debug("Running with arguments:")
+    for arg, value in sorted(vars(args).items()):
+        logging.debug(f"{arg}: {value}")
 
     if not Path(args.scamp_path).is_file():
         raise Exception(f"{args.scamp_path} does not exist!")

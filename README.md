@@ -48,3 +48,6 @@ The package also relies on a number of environment variables that specify defaul
 5. If necessary, install `poetry` with `pip install poetry`
 6. Clone the repository with `git clone git@github.com-dwf_prepipe:ddobie/dwf_prepipe.git`
 7. Install the repository as described above.
+
+### Note: Adding environment variables to a conda environment
+For conda versions >4.8 environment variables can easily be added with `conda env config vars set my_var=value`. However, for older versions the process is slightly more complex. A guide can be found [here](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#macos-and-linux).
