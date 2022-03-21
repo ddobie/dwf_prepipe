@@ -143,6 +143,8 @@ def main():
 
     start = datetime.datetime.now()
 
+    args = parse_args()
+
     logfile = "prepipe_process_ccd_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
     )
@@ -153,7 +155,7 @@ def main():
     if missfits_path is None:
         raise Exception("Path to MISSFITS is not specified")
 
-    args = parse_args()
+
     logging.debug("Running with arguments:")
     for arg, value in sorted(vars(args).items()):
         logging.debug(f"{arg}: {value}")
