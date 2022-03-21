@@ -72,9 +72,9 @@ def main():
 
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
-    logging.debug("Running with arguments:")
+    logger.debug("Running with arguments:")
     for arg, value in sorted(vars(args).items()):
-        logging.debug(f"{arg}: {value}")
+        logger.debug(f"{arg}: {value}")
 
     path_to_watch = Path(args.push_dir)
     path_to_untar = path_to_watch / 'untar'

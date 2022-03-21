@@ -156,9 +156,9 @@ def main():
         raise Exception("Path to MISSFITS is not specified")
 
 
-    logging.debug("Running with arguments:")
+    logger.debug("Running with arguments:")
     for arg, value in sorted(vars(args).items()):
-        logging.debug(f"{arg}: {value}")
+        logger.debug(f"{arg}: {value}")
 
     if args.mpi:
         from mpi4py import MPI

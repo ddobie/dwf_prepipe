@@ -315,9 +315,9 @@ def main():
 
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
-    logging.debug("Running with arguments:")
+    logger.debug("Running with arguments:")
     for arg, value in sorted(vars(args).items()):
-        logging.debug(f"{arg}: {value}")
+        logger.debug(f"{arg}: {value}")
 
     if not Path(args.scamp_path).is_file():
         raise Exception(f"{args.scamp_path} does not exist!")
