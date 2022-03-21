@@ -236,10 +236,10 @@ def main():
             ) as path:
                 bpm_name = path
 
-        with (fits.open(flat) as fl,
-              fits.open(bias) as b,
-              fits.open(bpm_name) as bp
-              ):
+        with \
+            fits.open(flat) as fl, \
+            fits.open(bias) as b, \
+            fits.open(bpm_name) as bp:
 
             fhdu = fl[0]
             bhdu = b[0]
