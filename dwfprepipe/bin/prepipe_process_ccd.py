@@ -486,7 +486,7 @@ def main():
                        f"--with-scamp-exec={args.scamp_path}",
                        f"--man-gaia={man_gaia}"
                        ]
-    logger.info("Running {' '.join(subprocess_call)}")
+    logger.info(f"Running {' '.join(subprocess_call)}")
     subprocess.check_call(subprocess_call)
 
     # Remove unescessary .jp2
