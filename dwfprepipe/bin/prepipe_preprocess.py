@@ -184,24 +184,35 @@ def main():
         myframes = frames
 
     # list a few astromatic config files
-    sexconf = importlib.resources.path("dwfprepipe.data.config",
-                                       "scamp.sex"
-                                       )
-    nnwname = importlib.resources.path("dwfprepipe.data.config",
-                                       "default.nnw"
-                                       )
-    filtname = importlib.resources.path("dwfprepipe.data.config",
-                                        "default.conv"
-                                        )
-    paramname = importlib.resources.path("dwfprepipe.data.config",
-                                         "scamp.param"
-                                         )
-    scampconf = importlib.resources.path("dwfprepipe.data.config",
-                                         "scamp.conf"
-                                         )
-    missfitsconf = importlib.resources.path("dwfprepipe.data.config",
-                                            "missfits.conf"
-                                            )
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "scamp.sex"
+    ) as path:
+        sexconf = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "default.nnw"
+    ) as path:
+        nnwname = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "default.conv"
+    ) as path:
+        filtname = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "scamp.param"
+    ) as path:
+        paramname = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "scamp.conf"
+    ) as path:
+        scampconf = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "missfits.conf"
+    ) as path:
+        missfitsconf = path
 
     # pass these constant options to sextractor
     clargs = ' -PARAMETERS_NAME %s -FILTER_NAME %s -STARNNW_NAME %s' % (
