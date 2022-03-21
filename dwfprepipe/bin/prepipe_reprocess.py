@@ -66,13 +66,16 @@ def main():
 
     start = datetime.datetime.now()
 
-    args = parse_args()
-
     logfile = "prepipe_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
     )
 
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
+
+    args = parse_args()
+    logging.debug("Running with arguments:")
+    for arg, value in sorted(vars(args).items()):
+        logging.debug(f"{arg}: {value}")
 
     path_to_watch = Path(args.push_dir)
     path_to_untar = path_to_watch / 'untar'
