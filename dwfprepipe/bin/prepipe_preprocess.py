@@ -131,6 +131,16 @@ def parse_args():
                         action='store_true'
                         )
 
+    parser.add_argument('--debug',
+                        action="store_true",
+                        help='Turn on debug output.'
+                        )
+
+    parser.add_argument('--quiet',
+                        action="store_true",
+                        help='Turn off all non-essential debug output'
+                        )
+
     args = parser.parse_args()
 
     return args
