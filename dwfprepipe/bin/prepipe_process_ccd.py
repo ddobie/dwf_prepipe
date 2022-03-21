@@ -478,14 +478,16 @@ def main():
     if not man_gaia.is_file():
         raise Exception(f"Path to Gaia data ({man_gaia}) does not exist!")
 
-    subprocess.check_call(["python",
-                           f"{preprocess_path}",
-                           f"--input-frames={input_frames}",
-                           f"--flat-frames={flat}",
-                           f"--bias-frames={bias}",
-                           f"--with-scamp-exec={args.scamp_path}",
-                           f"--man-gaia={man_gaia}"
-                           ])
+    subprocess_call = [f"python",
+                       f"{preprocess_path}",
+                       f"--input-frames={input_frames}",
+                       f"--flat-frames={flat}",
+                       f"--bias-frames={bias}",
+                       f"--with-scamp-exec={args.scamp_path}",
+                       f"--man-gaia={man_gaia}"
+                       ]
+    logger.info("Running {' '.join(subprocess_call)}")
+    subprocess.check_call(subprocess_call)
 
     # Remove unescessary .jp2
     jp2_path = untar_path + file_name
