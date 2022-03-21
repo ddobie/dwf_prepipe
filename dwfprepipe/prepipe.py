@@ -216,7 +216,7 @@ class Prepipe:
                                '-C',
                                str(self.path_to_untar)
                                ]
-            self.logger.debug(f"Running {" ".join(subprocess_call)}")
+            self.logger.debug(f"Running {' '.join(subprocess_call)}")
             subprocess.check_call(subprocess_call)
 
         except subprocess.CalledProcessError:
