@@ -7,7 +7,7 @@ import importlib.resources
 import logging
 
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Optional
 from dwfprepipe.utils import wait_for_file
 
 
