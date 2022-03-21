@@ -431,25 +431,29 @@ def main():
     checkflats = glob.glob(flats_glob_str)
 
     if checkflats == []:
-        logger.critical(
-            "Prepipe Warning: No master flat detected! "
+        logger.warning(
+            "No master flat detected! "
             "Looking for an individual flat.."
         )
         checkflats = glob.glob(str(dest_dir / f"domeflat.{Filter}*"))
         if checkflats == []:
             raise Exception("Prepipe Error: No flats detected! Exiting...")
+        else:
+            logger.info("Found individual flats")
     # Use the first in the list
     flat = checkflats[0]
 
     checkbias = glob.glob(str(dest_dir / "bias.master.*"))
     if checkbias == []:
-        logger.info(
-            "Prepipe Warning: No master bias detected! "
+        logger.warning(
+            "No master bias detected! "
             "Looking for an individual bias.."
         )
         checkbias = glob.glob(str(dest_dir / "bias.*"))
         if checkbias == []:
             raise Exception("Prepipe Error: No bias detected! Exiting...")
+        else:
+            logger.info("Found individual bias")
     # Use the first in the list
     bias = checkbias[0]
 
@@ -470,7 +474,7 @@ def main():
     ) as path:
         preprocess_path = path
 
-    man_gaia = args.gaia_dir / f'{Field}_gaia_dr2_LDAC.fits'
+    man_gaia = Path(args.gaia_dir) / f'{Field}_gaia_dr2_LDAC.fits'
     if not man_gaia.is_file():
         raise Exception(f"Path to Gaia data ({man_gaia}) does not exist!")
 
