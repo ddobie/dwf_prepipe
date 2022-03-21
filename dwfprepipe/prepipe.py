@@ -178,6 +178,7 @@ class Prepipe:
             None
         """
 
+        self.logger.info(f"Processing {file_name}...")
         if ccdlist is None:
             ccdlist = list(map(str, range(1, 60)))
 
@@ -348,12 +349,15 @@ class Prepipe:
                 removed_str = ", ".join(removed)
                 self.logger.info(f"Removed: {removed_str}")
 
-            for f in added:
+            for i, f in enumerate(added):
                 if not wait_for_file(f):
                     self.logger.info(f'{f} not written in time! Skipping...')
                     continue
 
                 self.process_file(f)
+                self.logger.info(f"Finished processing {f}!")
+                if i == len(added)-1:
+                    self.logger.info("All added files processed. Returning to monitoring.\n")
 
             if not added:
                 time.sleep(5)
