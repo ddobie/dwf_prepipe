@@ -331,19 +331,19 @@ class Prepipe:
         self.logger.info("Now running!")
         self.logger.info(f"Monitoring: {self.path_to_watch}")
 
-        glob_str = '*.fits.fz'
-        #self.logger.debug(f"Checking files with glob string: {glob_str}")
+        glob_str = '*.tar'
+        self.logger.debug(f"Checking files with glob string: {glob_str}")
         before = list(self.path_to_watch.glob(glob_str))
         self.logger.debug(f"Existing files: {before}")
         while True:
             after = list(self.path_to_watch.glob(glob_str))
             self.logger.debug(f"Current files: {after}")
-            added = [f for f in after if f not in before]
-            removed = [f for f in before if f not in after]
+            added = [str(f) for f in after if f not in before]
+            removed = [str(f) for f in before if f not in after]
 
             if added:
                 added_str = ", ".join(added)
-                self.logger.info("Added: {added_str}")
+                self.logger.info(f"Added: {added_str}")
             if removed:
                 removed_str = ", ".join(removed)
                 self.logger.info(f"Removed: {removed_str}")
