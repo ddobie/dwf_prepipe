@@ -492,7 +492,7 @@ def main():
     subprocess.check_call(subprocess_call)
 
     # Remove unescessary .jp2
-    jp2_path = untar_path + file_name
+    jp2_path = untar_path / file_name
     logger.info(f'Deleting: {jp2_path}')
     subprocess.run(['rm', str(jp2_path)])
 
