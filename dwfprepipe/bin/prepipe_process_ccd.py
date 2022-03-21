@@ -13,6 +13,7 @@ import importlib.resources
 import astropy.io.fits as pyfits
 
 from dwfprepipe.utils import get_logger
+from pathlib import Path
 
 
 def check_path(path):
@@ -189,26 +190,19 @@ def get_shift_field(ut, ccd, exp, Field):
 
 
 def parse_args():
-    default_photepipe = '/fred/oz100/pipes/arest/DECAM/DEFAULT/rawdata/'
-    default_pushdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/'
-    default_localdir = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/untar/'
-    default_scamp = '/home/fstars/scamp_gaia/bin/scamp'
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-p',
                         '--push-dir',
                         metavar='DIRECTORY',
                         type=str,
-                        default=default_pushdir,
+                        default=None,
                         help='Directory where tarballs of compressed '
                              'files are placed'
                         )
 
     parser.add_argument('-l',
                         '--local',
-                        metavar='DIRECTORY',
-                        type=bool,
-                        default=True,
+                        action="store_true",
                         help='Use node local storage for jpg '
                              'to fits conversion?'
                         )
@@ -216,15 +210,15 @@ def parse_args():
     parser.add_argument('--local-dir',
                         metavar='DIRECTORY',
                         type=str,
-                        default=default_localdir,
-                        help='Use node local storage for jpg '
-                             'to fits conversion? (1 or 0)'
+                        default=None,
+                        help='Local directory to untar to. If None, defaults '
+                             'to push_dir / untar.'
                         )
 
     parser.add_argument('--photepipe-rawdir',
                         metavar='DIRECTORY',
                         type=str,
-                        default=default_photepipe,
+                        default=None,
                         help=''
                         )
 
@@ -252,19 +246,66 @@ def parse_args():
 
     parser.add_argument('--scamp-path',
                         type=str,
-                        default=default_scamp,
+                        default=None,
                         help='Path to scamp',
+                        )
+    parser.add_argument('--gaia-dir',
+                        metavar='DIRECTORY',
+                        type=str,
+                        default=None,
+                        help='Directory with Gaia data'
                         )
 
     args = parser.parse_args()
+
+    if args.push_dir is None:
+        default_push_dir = os.getenv("PUSH_DIR")
+        if default_push_dir is None:
+            raise Exception("No Push directory provided. Please set it by "
+                            "passing the --push-dir argument, or by setting "
+                            "the PUSH_DIR environment variable."
+                            )
+        else:
+            args.push_dir = default_push_dir
+
+    if args.photepipe_rawdir is None:
+        default_photepipe_rawdir = os.getenv("PHOTEPIPE_RAWDIR")
+        if default_photepipe_rawdir is None:
+            raise Exception("No Photepipe raw data directory provided. Please "
+                            "set it by passing the --photepipe-rawdir "
+                            "argument, or by setting the PHOTEPIPE_RAWDIR "
+                            "environment variable."
+                            )
+        else:
+            args.photepipe_rawdir = default_photepipe_rawdir
+
+    if args.scamp_path is None:
+        default_scamp_path = os.getenv("SCAMP_PATH")
+        if default_scamp_path is None:
+            raise Exception("No path to SCAMP provided. Please "
+                            "set it by passing the --scamp-path "
+                            "argument, or by setting the SCAMP_PATH "
+                            "environment variable."
+                            )
+        else:
+            args.scamp_path = default_scamp_path
+
+    if args.gaia_dir is None:
+        default_gaia_dir = os.getenv("GAIA_DIR")
+        if default_scamp_path is None:
+            raise Exception("No path to Gaia data provided. Please "
+                            "set it by passing the --gaia-dir "
+                            "argument, or by setting the GAIA_DIR "
+                            "environment variable."
+                            )
+        else:
+            args.gaia_dir = default_gaia_dir
 
     return args
 
 
 def main():
     start = datetime.datetime.now()
-
-    args = parse_args()
 
     logfile = "prepipe_process_ccd_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
@@ -274,56 +315,72 @@ def main():
 
     args = parse_args()
 
+    logging.debug("Running with arguments:")
+    for arg, value in sorted(vars(args).items()):
+        logging.debug(f"{arg}: {value}")
+
+    if not Path(args.scamp_path).is_file():
+        raise Exception(f"{args.scamp_path} does not exist!")
+
+    if not Path(args.gaia_dir).is_dir():
+        raise Exception(f"{args.gaia_dir} does not exist!")
+
     # Set local Directory and check to see if it exists
     local_dir = Path(args.local_dir)
-    local_convert = args.local
 
-    if local_convert:
+    if args.local:
         if not local_dir.is_dir():
             logger.info(f'Creating Directory: {local_dir}')
             local_dir.mkdir()
-    local_dir = str(local_dir)
 
     photepipe_rawdir = Path(args.photepipe_rawdir)
+    if photepipe_rawdir.stem != 'rawdata':
+        raise Exception(f"Photepipe raw data directory should end with "
+                        f"'rawdata'. Is instead {photepipe_rawdir}."
+                        )
+
     if not photepipe_rawdir.is_dir():
         logger.info(f'Creating Directory: {photepipe_rawdir}')
         photepipe_rawdir.mkdir()
-    photepipe_rawdir = str(photepipe_rawdir)
 
-    push_dir = args.push_dir
-    untar_path = check_path(push_dir + 'untar/')
+    photepipe_workspace = Path(args.photepipe_rawdir.replace('rawdata',
+                                                             'workspace')
+                               )
+    if not photepipe_workspace.is_dir():
+        logger.info(f'Creating Directory: {photepipe_workspace}')
+        photepipe_workspace.mkdir()
+
+    push_dir = Path(args.push_dir)
+    untar_path = push_dir / 'untar'
 
     file_name = args.input_file
     DECam_Root = file_name.split('.')[0]
     ccd_num = DECam_Root.split('_')[2]
 
-    if(local_convert):
+    if args.local:
         # Move .jp2 to local directory
         logger.info(
-            'Moving ' +
-            untar_path +
-            file_name +
-            ' to ' +
-            local_dir +
-            file_name)
-        shutil.move(untar_path + file_name, local_dir + file_name)
+            'Moving {untar_path / file_name} to {local_dir / file_name'
+        )
+        shutil.move(untar_path / file_name, local_dir / file_name)
         untar_path = local_dir
 
     # Uncompress Fits on local Directory
-    uncompressed_fits = untar_path + DECam_Root + '.fits'
+    fits_file = DECam_Root + '.fits'
+    uncompressed_fits = untar_path / fits_file
     logger.info('--------*****')
     logger.info(uncompressed_fits)
-    logger.info('Uncompressing: ' + file_name + ' in path: ' + untar_path)
+    logger.info('Uncompressing: {file_name} in path: {untar_path}')
     logger.info('--------*****')
     uncompress_call = ['j2f_DECam',
                        '-i',
-                       untar_path + file_name,
+                       str(untar_path / file_name),
                        '-o',
-                       uncompressed_fits,
+                       str(uncompressed_fits),
                        '-num_threads',
                        str(1)
                        ]
-    logger.info(" ".join(uncompress_call))
+    logger.info(f'Running {" ".join(uncompress_call)}')
     subprocess.run(uncompress_call)
 
     # Extract nescessary information from file for naming scheme
@@ -346,117 +403,98 @@ def main():
 
     obstype = pyfits.getval(uncompressed_fits, "OBSTYPE")
 
-    newname = Field + '.' + Filter + '.' + ut + \
-        '.' + str(exp) + '_' + ccd_num + '.fits'
+    newname = f"{Field}.{Filter}.{ut}.{exp}_{ccd_num}.fits"
     if((obstype == 'dome flat') or (obstype == 'domeflat')):
-        newname = 'domeflat.' + Filter + '.' + ut + \
-            '.' + str(exp) + '_' + ccd_num + '.fits'
+        newname = f"domeflat.{Filter}.{ut}.{exp}_{ccd_num}.fits"
     if((obstype == 'zero') or (obstype == 'bias')):
-        newname = 'bias.' + ut + '.' + str(exp) + '_' + ccd_num + '.fits'
+        newname = f"bias.{ut}.{exp}_{ccd_num}.fits"
 
-    ut_dir = check_path(photepipe_rawdir + ut + '/')
-    dest_dir = check_path(ut_dir + ccd_num + '/')
+    ut_dir = photepipe_rawdir / ut
+    workspace_ut_dir = photepipe_workspace
 
-    # Check to see if UT date & CCD Directories have been created
-    if not os.path.isdir(ut_dir):
-        logger.info('Creating Directory: ' + ut_dir)
-        os.makedirs(ut_dir)
-    else:
-        logger.info('Directory Exists: ' + ut_dir)
+    # if not ut_dir.is_dir():
+    #    ut_dir.mkdir()
 
-    if not os.path.isdir(dest_dir):
-        logger.info('Creating Directory: ' + dest_dir)
-        os.makedirs(dest_dir)
-    else:
-        logger.info('Directory Exists: ' + dest_dir)
-
-    # Same as above but for the $workspace
-    if not os.path.isdir(ut_dir.replace("rawdata", "workspace")):
-        logger.info(
-            'Creating Directory: ' +
-            ut_dir.replace(
-                "rawdata",
-                "workspace"))
-        os.makedirs(ut_dir.replace("rawdata", "workspace"))
-    else:
-        logger.info(
-            'Directory Exists: ' +
-            ut_dir.replace(
-                "rawdata",
-                "workspace"))
-
-    if not os.path.isdir(dest_dir.replace("rawdata", "workspace")):
-        logger.info(
-            'Creating Directory: ' +
-            dest_dir.replace(
-                "rawdata",
-                "workspace"))
-        os.makedirs(dest_dir.replace("rawdata", "workspace"))
-    else:
-        logger.info(
-            'Directory Exists: ' +
-            dest_dir.replace(
-                "rawdata",
-                "workspace"))
+    dest_dir = ut_dir / ccd_num
+    workspace_dest_dir = workspace_ut_dir / ccd_num
+    if not dest_dir.is_dir():
+        logger.info(f'Creating Directory: {dest_dir}')
+        dest_dir.mkdir(parents=True)
+    if not workspace_dest_dir.is_dir():
+        logger.info(f'Creating Directory: {workspace_dest_dir}')
+        workspace_dest_dir.mkdir(parents=True)
 
     # Move Uncompressed Fits File
-    logger.info('Renaming ' + file_name + ' to ' + newname)
-    logger.info('And moving to: ' + dest_dir)
-    shutil.move(uncompressed_fits, dest_dir + newname)
+    logger.info(f'Moving {uncompressed_fits} to {dest_dir / newname}')
+    shutil.move(uncompressed_fits, dest_dir / newname)
 
     # Check for and prepare the calibration file lists
-    checkflats = glob.glob(dest_dir + "domeflat." + Filter + ".master.*")
+    flats_glob_str = str(dest_dir / f"domeflat.{Filter}.master.*")
+    checkflats = glob.glob(flats_glob_str)
 
     if checkflats == []:
-        logger.info(
-            "Prepipe Warning: No master flat detected! "
+        logger.warning(
+            "No master flat detected! "
             "Looking for an individual flat.."
         )
-        checkflats = glob.glob(dest_dir + "domeflat." + Filter + "*")
+        checkflats = glob.glob(str(dest_dir / f"domeflat.{Filter}*"))
         if checkflats == []:
             raise Exception("Prepipe Error: No flats detected! Exiting...")
+        else:
+            logger.info("Found individual flats")
     # Use the first in the list
     flat = checkflats[0]
 
-    checkbias = glob.glob(dest_dir + "bias.master.*")
+    checkbias = glob.glob(str(dest_dir / "bias.master.*"))
     if checkbias == []:
-        logger.info(
-            "Prepipe Warning: No master bias detected! "
+        logger.warning(
+            "No master bias detected! "
             "Looking for an individual bias.."
         )
-        checkbias = glob.glob(dest_dir + "bias.*")
+        checkbias = glob.glob(str(dest_dir / "bias.*"))
         if checkbias == []:
             raise Exception("Prepipe Error: No bias detected! Exiting...")
-    # Uuse the first in the list
+        else:
+            logger.info("Found individual bias")
+    # Use the first in the list
     bias = checkbias[0]
 
     # Copy the raw image to the workspace, so that all the products
     # will be generated there.
+    input_frames = workspace_dest_dir / newname
+
     subprocess.check_call(['cp',
-                           dest_dir + newname,
-                           dest_dir.replace("rawdata", "workspace") + newname
+                           dest_dir / newname,
+                           input_frames
                            ]
                           )
 
     # Call Danny's preprocess code for CCD reduction
-    preprocess_path = importlib.resources.path("dwfprepipe.bin",
-                                               "prepipe_preprocess.py"
-                                               )
-    input_frames = dest_dir.replace("rawdata", "workspace") + newname
-    man_gaia = f'fred/oz100/pipes/DWF_PIPE/GAIA_DR2/{Field}_gaia_dr2_LDAC.fits'
+    with (
+        importlib.resources.path("dwfprepipe.bin",
+                                 "prepipe_preprocess.py")
+    ) as path:
+        preprocess_path = path
 
-    subprocess.check_call(["python",
-                           f"{preprocess_path}",
-                           f"--input-frames={input_frames}",
-                           f"--flat-frames={flat}",
-                           f"--bias-frames={bias}",
-                           f"--with-scamp-exec={args.scamp_path}",
-                           f"--man-gaia={man_gaia}"
-                           ])
+    man_gaia = Path(args.gaia_dir) / f'{Field}_gaia_dr2_LDAC.fits'
+    if not man_gaia.is_file():
+        raise Exception(f"Path to Gaia data ({man_gaia}) does not exist!")
+
+    subprocess_call = [f"python",
+                       f"{preprocess_path}",
+                       f"--input-frames={input_frames}",
+                       f"--flat-frames={flat}",
+                       f"--bias-frames={bias}",
+                       f"--with-scamp-exec={args.scamp_path}",
+                       f"--man-gaia={man_gaia}"
+                       ]
+    logger.info(f"Running {' '.join(subprocess_call)}")
+    subprocess.check_call(subprocess_call)
 
     # Remove unescessary .jp2
-    logger.info('Deleting: ' + untar_path + file_name)
-    subprocess.run(['rm', untar_path + file_name])
+    jp2_path = untar_path + file_name
+    logger.info(f'Deleting: {jp2_path}')
+    subprocess.run(['rm', str(jp2_path)])
 
 
 if __name__ == '__main__':

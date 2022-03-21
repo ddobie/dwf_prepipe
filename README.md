@@ -36,6 +36,9 @@ The package also relies on a number of environment variables that specify defaul
 * OzSTAR
   * `PUSH_DIR` is the directory on ozstar where the compressed tarballs are pushed to, ready for unpacking. Typically should be set to `PUSH_DIR=/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/`.
   * `MISSFITS` is the path to the missfits executable. Typically should be set to `MISSFITS=/home/fstars/missfits-2.8.0/bin/missfits`.
+  * `PHOTEPIPE_RAWDIR` is the path to the PHOTEPIPE raw data directory. Typically should be set to `PHOTEPIPE_RAWDIR=/fred/oz100/pipes/arest/DECAM/DEFAULT/rawdata/`.
+  * `SCAMP_PATH` is the path to the SCAMP executable. Typically should be set to `/home/fstars/scamp_gaia/bin/scamp`
+  * `GAIA_DIR` is the path to the directory containing the relevant Gaia data. Typically should be set to `/fred/oz100/pipes/DWF_PIPE/GAIA_DR2/`.
 
 ## Deploying to shared/remote servers
 1. Log in to the remote server and [generate a new ssh key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent#generating-a-new-ssh-key)
