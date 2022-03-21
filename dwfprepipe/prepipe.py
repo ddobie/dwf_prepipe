@@ -353,7 +353,7 @@ class Prepipe:
                     self.logger.info(f'{f} not written in time! Skipping...')
                     continue
 
-                self.unpack(f)
+                self.process_file(f)
 
             if not added:
                 time.sleep(5)
