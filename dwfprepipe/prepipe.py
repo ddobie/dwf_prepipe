@@ -7,7 +7,7 @@ import importlib.resources
 import logging
 
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Optional
 from dwfprepipe.utils import wait_for_file
 
 
@@ -24,7 +24,8 @@ class Prepipe:
                  path_to_untar: Union[str, Path],
                  path_to_sbatch: Union[str, Path],
                  run_date: str,
-                 res_name: Union[str, None] = None
+                 res_name: Optional[str] = None,
+                 dry_run: bool = False,
                  ):
         """
         Constructor method.
@@ -35,6 +36,7 @@ class Prepipe:
             path_to_sbatch: Directory to write sbatch files to.
             run_date: UT date of the run in the form `utYYMMDD`.
             res_name: Name of the ozstar reservation, defaults to None.
+            dry_run: If `True`, writes sbatch files but does not submit them.
 
         Returns:
             None
@@ -49,6 +51,7 @@ class Prepipe:
         self.path_to_untar = Path(path_to_untar)
         self.path_to_sbatch = Path(path_to_sbatch)
         self.run_date = run_date
+        self.dry_run = dry_run
         self.sbatch_out_dir = self.path_to_sbatch / 'out'
 
         self.set_sbatch_vars(res_name)
@@ -209,11 +212,11 @@ class Prepipe:
         try:
             subprocess_call = ['tar',
                                '-xf',
-                               self.path_to_watch / file_name,
+                               str(self.path_to_watch / file_name),
                                '-C',
-                               self.path_to_untar
+                               str(self.path_to_untar)
                                ]
-            self.logger.debug(f"Running {subprocess_call}")
+            self.logger.debug(f"Running {' '.join(subprocess_call)}")
             subprocess.check_call(subprocess_call)
 
         except subprocess.CalledProcessError:
@@ -292,18 +295,27 @@ class Prepipe:
         with importlib.resources.path(
             "dwfprepipe.bin", "prepipe_process_ccd.py"
         ) as process_ccd_script:
-            jobs_str_temp = f'{process_ccd_script} -i {{0}} -d {{1}} &\n'
+            jobs_str_temp = f'{process_ccd_script} ' \
+                            f'-i {{0}} ' \
+                            f'-d {self.run_date} ' \
+                            f'-p {self.path_to_watch} ' \
+                            f'-l --local-dir {self.path_to_untar} ' \
+                            '&\n'
+
         jobs_str = ''
         for image in image_list:
-            jobs_str += jobs_str_temp.format(image, self.run_date)
+            jobs_str += jobs_str_temp.format(image)
 
         self._write_sbatch(sbatch_name, qroot, jobs_str)
 
-        if sbatch_name.is_file():
-            self.logger.debug(f"Running {sbatch_name}")
-            subprocess.run(['sbatch', str(sbatch_name)])
+        if self.dry_run:
+            self.logger.info("Dry run selected, not submitting sbatch jobs")
         else:
-            logger.critical(f"{sbatch_name} does not exist!")
+            if sbatch_name.is_file():
+                self.logger.debug(f"Running {sbatch_name}")
+                subprocess.run(['sbatch', str(sbatch_name)])
+            else:
+                logger.critical(f"{sbatch_name} does not exist!")
 
     def listen(self):
         """
