@@ -212,11 +212,11 @@ class Prepipe:
         try:
             subprocess_call = ['tar',
                                '-xf',
-                               self.path_to_watch / file_name,
+                               str(self.path_to_watch / file_name),
                                '-C',
-                               self.path_to_untar
+                               str(self.path_to_untar)
                                ]
-            self.logger.debug(f"Running {subprocess_call}")
+            self.logger.debug(f"Running {" ".join(subprocess_call)}")
             subprocess.check_call(subprocess_call)
 
         except subprocess.CalledProcessError:
