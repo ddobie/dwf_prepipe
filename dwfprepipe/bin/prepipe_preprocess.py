@@ -165,7 +165,6 @@ def main():
     if missfits_path is None:
         raise Exception("Path to MISSFITS is not specified")
 
-
     logger.debug("Running with arguments:")
     for arg, value in sorted(vars(args).items()):
         logger.debug(f"{arg}: {value}")
@@ -247,9 +246,9 @@ def main():
                 bpm_name = path
 
         with \
-            fits.open(flat) as fl, \
-            fits.open(bias) as b, \
-            fits.open(bpm_name) as bp:
+                fits.open(flat) as fl, \
+                fits.open(bias) as b, \
+                fits.open(bpm_name) as bp:
 
             fhdu = fl[0]
             bhdu = b[0]
