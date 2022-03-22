@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import pdb
 import subprocess
 import argparse
 import datetime
@@ -8,7 +7,6 @@ import importlib.resources
 
 import numpy as np
 
-from numpy import ma
 from astropy.io import fits
 from dwfprepipe.utils import get_logger
 
