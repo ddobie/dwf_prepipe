@@ -74,7 +74,6 @@ def main():
 
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
-
     logger.debug("Running with arguments:")
     for arg, value in sorted(vars(args).items()):
         logger.debug(f"{arg}: {value}")
