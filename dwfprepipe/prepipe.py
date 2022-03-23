@@ -317,9 +317,9 @@ class Prepipe:
             else:
                 logger.critical(f"{sbatch_name} does not exist!")
 
-    def listen(self):
+    def process_filelist(self, filelist):
         """
-        Listen for files to process.
+        Run process_file on list of files.
 
         Args:
             None
@@ -327,40 +327,14 @@ class Prepipe:
         Returns:
             None
         """
+        for i, f in enumerate(filelist):
+            if not wait_for_file(f):
+                self.logger.info(f'{f} not written in time! Skipping...')
+                continue
 
-        self.logger.info("Now running!")
-        self.logger.info(f"Monitoring: {self.path_to_watch}")
-
-        glob_str = '*.tar'
-        self.logger.debug(f"Checking files with glob string: {glob_str}")
-        before = list(self.path_to_watch.glob(glob_str))
-        self.logger.debug(f"Existing files: {before}")
-        while True:
-            after = list(self.path_to_watch.glob(glob_str))
-            self.logger.debug(f"Current files: {after}")
-            added = [str(f) for f in after if f not in before]
-            removed = [str(f) for f in before if f not in after]
-
-            if added:
-                added_str = ", ".join(added)
-                self.logger.info(f"Added: {added_str}")
-            if removed:
-                removed_str = ", ".join(removed)
-                self.logger.info(f"Removed: {removed_str}")
-
-            for i, f in enumerate(added):
-                if not wait_for_file(f):
-                    self.logger.info(f'{f} not written in time! Skipping...')
-                    continue
-
-                self.process_file(f)
-                self.logger.info(f"Finished processing {f}!")
-                if i == len(added) - 1:
-                    self.logger.info("All added files processed. Returning to "
-                                     "monitoring {self.path_to_watch}...\n"
-                                     )
-
-            if not added:
-                time.sleep(5)
-
-            before = after
+            self.process_file(f)
+            self.logger.info(f"Finished processing {f}!")
+            if i == len(filelist) - 1:
+                self.logger.info("All added files processed. Returning to "
+                                 "monitoring {self.path_to_watch}...\n"
+                                 )

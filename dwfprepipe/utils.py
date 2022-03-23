@@ -107,3 +107,56 @@ def wait_for_file(filepath: Union[str, Path],
             return False
 
         fsize_old = fsize_new
+
+
+def listen(logger,
+           path_to_watch: Union[str, Path],
+           function_to_run,
+           extension: str = ".fits.fz",
+           sleep_time: float = 1.0
+           ):
+    """
+    Listen for new images, push or package them.
+
+    Args:
+        logger: Where stuff will be logged.
+        path_to_watch: Path to listen in on.
+        function_to_run: Function to run when a file (or list of files)
+                         is found.
+        extension: Extension to listen for.
+        sleep_time: Seconds to sleep after a loop without finding a new file.
+
+    Returns:
+        None
+    """
+    if isinstance(path_to_watch, str):
+        path_to_watch = Path(path_to_watch)
+
+    logger.info(f"Monitoring: {str(path_to_watch)}")
+
+    logger.debug(f"Checking files with extension: {extension}")
+    before = list(path_to_watch.glob("*" + extension))
+    existingfiles_str = ', '.join([str(f) for f in before])
+    logger.debug(f"Existing files: {existingfiles_str}")
+
+    while True:
+        after = list(path_to_watch.glob("*" + extension))
+        after_str = ', '.join([str(f) for f in after])
+        logger.debug(f"Current files: {after_str}")
+        added = [f for f in after if f not in before]
+        removed = [f for f in before if f not in after]
+
+        if added:
+            added_str = ', '.join([str(f) for f in added])
+            logger.info(f"Added: {added_str}")
+
+            function_to_run(added)
+
+        if removed:
+            removed_str = ', '.join([str(f) for f in removed])
+            logger.info(f"Removed: {removed_str}")
+
+        before = after
+
+        if not added:
+            time.sleep(sleep_time)

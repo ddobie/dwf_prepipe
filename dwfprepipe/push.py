@@ -1,5 +1,3 @@
-import time
-import glob
 import subprocess
 import logging
 import multiprocessing as mp
@@ -7,6 +5,7 @@ import multiprocessing as mp
 from pathlib import Path
 from typing import Union
 from dwfprepipe.utils import wait_for_file
+from dwfprepipe.utils import listen
 
 
 class CTIOPushInitError(Exception):
@@ -392,7 +391,7 @@ class CTIOPush:
 
             self.cleantemp(f, self.path_to_watch)
 
-    def listen(self):
+    def listen_split(self):
         """
         Listen for new images, package and push them simultaneously.
 
@@ -404,55 +403,44 @@ class CTIOPush:
         """
         self.logger.info("Now running!")
 
-        p1 = mp.Process(target=self.listenfor, args='Packaging')
+        p1 = mp.Process(
+            target=listen,
+            args=(self.logger, self.path_to_watch, self.package_filelist)
+        )
         p1.start()
 
-        p2 = mp.Process(target=self.listenfor, args='Pushing')
+        p2 = mp.Process(
+            target=listen,
+            args=(self.logger, self.jp2_dir, self.push_filelist, '.tar')
+        )
         p2.start()
 
-    def listenfor(self, process: str):
+    def package_filelist(self, filelist: list):
         """
-        Listen for new images, push or package them.
+        Compress/package list of files.
 
         Args:
-            Process: Name of process we're listening for - either pushing or
-                     packaging.
+            None
 
         Returns:
             None
         """
+        for f in filelist:
+            self.packagefile(f)
 
-        if process == 'Packaging':
-            self.logger.info(f"Monitoring: {self.path_to_watch}")
-            glob_str = str(self.path_to_watch) + '/*.fits.fz'
-        elif process == 'Pushing':
-            self.logger.info(f"Monitoring: {self.jp2_dir}")
-            glob_str = str(self.jp2_dir) + '/*.tar'
+    def push_filelist(self, filelist: list):
+        """
+        Push list of files based on the chosen method.
 
-        before = glob.glob(glob_str)
+        Args:
+            None
 
-        while True:
-            after = glob.glob(glob_str)
-            added = [f for f in after if f not in before]
-            removed = [f for f in before if f not in after]
-
-            if added:
-                self.logger.info("Added: {}".format(', '.join(added)))
-                if process == 'Packaging':
-                    for f in added:
-                        self.packagefile(f)
-                elif process == 'Pushing':
-                    if self.method == 'parallel':
-                        self.push_parallel(added)
-                    elif self.method == 'serial':
-                        self.push_serial(added[-1])
-                    elif self.method == 'bundle':
-                        self.push_bundle(added)
-
-            if removed:
-                removed_str = ', '.join(removed)
-                self.logger.info(f"Removed: {removed_str}")
-
-            before = after
-
-            time.sleep(1)
+        Returns:
+            None
+        """
+        if self.method == 'parallel':
+            self.push_parallel(filelist)
+        elif self.method == 'serial':
+            self.push_serial(filelist)
+        elif self.method == 'bundle':
+            self.push_bundle(filelist)

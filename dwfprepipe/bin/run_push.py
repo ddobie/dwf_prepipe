@@ -118,7 +118,7 @@ def main():
     if Push.method == 'end of night':
         Push.process_endofnight(args.exp_min)
     else:
-        Push.listen()
+        Push.listen_split()
 
 
 if __name__ == '__main__':
