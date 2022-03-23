@@ -6,6 +6,7 @@ from pathlib import Path
 
 from dwfprepipe.prepipe import Prepipe
 from dwfprepipe.utils import get_logger
+from dwfprepipe.utils import listen
 
 
 def parse_args():
@@ -87,7 +88,11 @@ def main():
                       args.res_name
                       )
 
-    prepipe.listen()
+    listen(prepipe.logger,
+           prepipe.path_to_watch,
+           prepipe.process_filelist,
+           extension='.tar',
+           sleep_time=5)
 
 
 if __name__ == '__main__':
