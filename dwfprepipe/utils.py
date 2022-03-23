@@ -107,5 +107,4 @@ def wait_for_file(filepath: Union[str, Path],
             else:
                 continue
         else:
-            return True
-            
+            return True 
