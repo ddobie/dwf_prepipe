@@ -2,6 +2,7 @@ import time
 import glob
 import subprocess
 import logging
+import multiprocessing as mp
 
 from pathlib import Path
 from typing import Union
@@ -45,6 +46,7 @@ class CTIOPush:
                               'p': 'parallel',
                               'b': 'bundle',
                               'e': 'end of night',
+                              'c': 'compression split'
                               }
 
         if push_method in self.valid_methods.keys():
@@ -89,7 +91,8 @@ class CTIOPush:
         if self.push_method not in self.valid_methods.values():
             self.logger.critical(
                 "The push method must be one of the following: "
-                "(s)erial, (p)arallel, (b)undle, (e)nd of night. "
+                "(s)erial, (p)arallel, (b)undle, (e)nd of night, "
+                "(c)ompression split. "
                 "Please choose one of the above and try again."
             )
             valid = False
@@ -311,7 +314,7 @@ class CTIOPush:
                 self.pushfile(f)
                 self.cleantemp(f)
 
-    def process_parallel(self, filelist: list):
+    def push_parallel(self, filelist: list):
         """
         Process a list of files in parallel.
 
@@ -323,17 +326,16 @@ class CTIOPush:
         """
 
         for f in filelist:
-            self.logger.info(f'Processing: {f}...')
+            self.logger.info(f'Push: {f}...')
 
             if not wait_for_file(f):
                 self.logger.info(f'{f} not written in time! Skipping...')
                 continue
 
-            self.packagefile(f)
             self.pushfile(f, parallel=True)
             self.cleantemp(f)
 
-    def process_serial(self, filename: Union[str, Path]):
+    def push_serial(self, filename: Union[str, Path]):
         """
         Process a file in serial.
 
@@ -344,17 +346,16 @@ class CTIOPush:
             None
         """
 
-        self.logger.info(f'Processing: {filename}...')
+        self.logger.info(f'Push: {filename}...')
 
-        if not wait_for_file(f):
-            self.logger.info(f'{f} not written in time! Skipping...')
+        if not wait_for_file(filename):
+            self.logger.info(f'{filename} not written in time! Skipping...')
             return
-
-        self.packagefile(filename)
+        
         self.pushfile(filename)
         self.cleantemp(filename)
 
-    def process_bundle(self, filelist: list):
+    def push_bundle(self, filelist: list):
         """
         Process a list of files as bundle.
 
@@ -376,59 +377,82 @@ class CTIOPush:
         bundle_size = len(bundle)
 
         for i, f in enumerate(bundle):
-            self.logger.info(f'Processing: {f}...')
+            self.logger.info(f'Pushing: {f}...')
 
             if not wait_for_file(f):
                 self.logger.info(f'{f} not written in time! Skipping...')
                 continue
 
-            self.packagefile(f)
             # do all but the last scp in parallel;
             # then force python to wait until the final transfer is complete
-            if i < bundlesize:
+            if i < bundle_size:
                 self.pushfile(f, parallel=True)
             else:
                 self.pushfile(f)
 
             self.cleantemp(f, self.path_to_watch)
-
+        
     def listen(self):
         """
-        Listen for new images, process and push them.
-
+        Listen for new images, package and push them simultaneously.
+    
         Args:
             None
-
+    
         Returns:
             None
         """
-
         self.logger.info("Now running!")
-        self.logger.info(f"Monitoring: {self.path_to_watch}")
-
-        glob_str = str(self.path_to_watch) + '*.fits.fz'
-
+        
+        p1 = mp.Process(target=self.listenfor,args='Packaging')
+        p1.start()
+        
+        p2 = mp.Process(target=self.listenfor,args='Pushing')
+        p2.start()
+        
+    def listenfor(self,process: str):
+        """
+        Listen for new images, push or package them.
+    
+        Args:
+            Process: Name of process we're listening for - either pushing or
+                     packaging.
+    
+        Returns:
+            None
+        """
+        
+        if process == 'Packaging':
+            self.logger.info(f"Monitoring: {self.path_to_watch}")
+            glob_str = str(self.path_to_watch) + '/*.fits.fz'
+        elif process == 'Pushing':
+            self.logger.info(f"Monitoring: {self.jp2_dir}")
+            glob_str = str(self.jp2_dir) + '/*.tar'
+    
         before = glob.glob(glob_str)
-
+    
         while True:
             after = glob.glob(glob_str)
             added = [f for f in after if f not in before]
             removed = [f for f in before if f not in after]
-
+    
             if added:
-                logger.info("Added: {}".format(', '.join(added)))
-
-                if self.method == 'parallel':
-                    self.process_parallel(added)
-                elif self.method == 'serial':
-                    self.process_serial(added[-1])
-                elif self.method == 'bundle':
-                    self.process_bundle(added)
-
+                self.logger.info("Added: {}".format(', '.join(added)))
+                if process == 'Packaging':
+                    for f in added:
+                        self.packagefile(f)
+                elif process == 'Pushing':
+                    if self.method == 'parallel':
+                        self.push_parallel(added)
+                    elif self.method == 'serial':
+                        self.push_serial(added[-1])
+                    elif self.method == 'bundle':
+                        self.push_bundle(added)
+    
             if removed:
                 removed_str = ', '.join(removed)
-                logger.info(f"Removed: {removed_str}")
-
+                self.logger.info(f"Removed: {removed_str}")
+    
             before = after
-
+    
             time.sleep(1)
