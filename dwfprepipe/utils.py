@@ -98,10 +98,10 @@ def wait_for_file(filepath: Union[str, Path],
     while True:
         time.sleep(wait_time)
         waited_time += wait_time
-         
+
         try:
             filepath.rename(filepath)
             return True
-        except PermissionError:            
+        except PermissionError:
             if waited_time > max_wait:
                 return False
