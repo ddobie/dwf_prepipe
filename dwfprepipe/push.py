@@ -351,7 +351,7 @@ class CTIOPush:
         if not wait_for_file(filename):
             self.logger.info(f'{filename} not written in time! Skipping...')
             return
-        
+
         self.pushfile(filename)
         self.cleantemp(filename)
 
@@ -391,51 +391,51 @@ class CTIOPush:
                 self.pushfile(f)
 
             self.cleantemp(f, self.path_to_watch)
-        
+
     def listen(self):
         """
         Listen for new images, package and push them simultaneously.
-    
+
         Args:
             None
-    
+
         Returns:
             None
         """
         self.logger.info("Now running!")
-        
-        p1 = mp.Process(target=self.listenfor,args='Packaging')
+
+        p1 = mp.Process(target=self.listenfor, args='Packaging')
         p1.start()
-        
-        p2 = mp.Process(target=self.listenfor,args='Pushing')
+
+        p2 = mp.Process(target=self.listenfor, args='Pushing')
         p2.start()
-        
-    def listenfor(self,process: str):
+
+    def listenfor(self, process: str):
         """
         Listen for new images, push or package them.
-    
+
         Args:
             Process: Name of process we're listening for - either pushing or
                      packaging.
-    
+
         Returns:
             None
         """
-        
+
         if process == 'Packaging':
             self.logger.info(f"Monitoring: {self.path_to_watch}")
             glob_str = str(self.path_to_watch) + '/*.fits.fz'
         elif process == 'Pushing':
             self.logger.info(f"Monitoring: {self.jp2_dir}")
             glob_str = str(self.jp2_dir) + '/*.tar'
-    
+
         before = glob.glob(glob_str)
-    
+
         while True:
             after = glob.glob(glob_str)
             added = [f for f in after if f not in before]
             removed = [f for f in before if f not in after]
-    
+
             if added:
                 self.logger.info("Added: {}".format(', '.join(added)))
                 if process == 'Packaging':
@@ -448,11 +448,11 @@ class CTIOPush:
                         self.push_serial(added[-1])
                     elif self.method == 'bundle':
                         self.push_bundle(added)
-    
+
             if removed:
                 removed_str = ', '.join(removed)
                 self.logger.info(f"Removed: {removed_str}")
-    
+
             before = after
-    
+
             time.sleep(1)
