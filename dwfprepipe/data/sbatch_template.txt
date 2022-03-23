@@ -24,6 +24,9 @@ echo SBATCH: job name is $SLURM_JOB_NAME
 echo ------------------------------------------------------
 echo Just in case, do the below:
 
+source ~/.bash_profile
+
+conda activate prepipe
 
 echo $HOST
 

@@ -3,7 +3,8 @@ import glob
 import subprocess
 import logging
 import multiprocessing as mp
-
+import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 from pathlib import Path
 from typing import Union
 from dwfprepipe.utils import wait_for_file
@@ -305,14 +306,14 @@ class CTIOPush:
         self.logger.info(f'Missing {num_missing} of {total_obs} '
                          f'files ({perc}% successful)'
                          )
-
-        for i, f in enumerate(missing):
-            exp_num = int(f.split('_')[1])
-            if exp_num > exp_min:
-                self.logger.info(f'Processing: {f} ({i} of {num_missing})')
-                self.packagefile(f)
-                self.pushfile(f)
-                self.cleantemp(f)
+        with logging_redirect_tqdm():
+            for i, f in tqdm.tqdm(enumerate(missing), total=num_missing):
+                exp_num = int(f.split('_')[1])
+                if exp_num > exp_min:
+                    self.logger.info(f'Processing: {f} ({i} of {num_missing})')
+                    self.packagefile(f)
+                    self.pushfile(f)
+                    self.cleantemp(f)
 
     def push_parallel(self, filelist: list):
         """
