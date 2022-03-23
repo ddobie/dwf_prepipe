@@ -101,17 +101,17 @@ def main():
 
     start = datetime.datetime.now()
 
+    args = parse_args()
+
     logfile = "prepipe_push_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
     )
 
     logger = get_logger(args.debug, args.quiet, logfile=logfile)
 
-    args = parse_args()
-
-    logging.debug("Running with arguments:")
+    logger.debug("Running with arguments:")
     for arg, value in sorted(vars(args).items()):
-        logging.debug(f"{arg}: {value}")
+        logger.debug(f"{arg}: {value}")
 
     Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
 

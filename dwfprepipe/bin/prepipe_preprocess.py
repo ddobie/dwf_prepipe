@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 import os
-import pdb
 import subprocess
 import argparse
 import datetime
+import importlib.resources
 
 import numpy as np
 
-from numpy import ma
 from astropy.io import fits
 from dwfprepipe.utils import get_logger
 
@@ -130,6 +129,16 @@ def parse_args():
                         action='store_true'
                         )
 
+    parser.add_argument('--debug',
+                        action="store_true",
+                        help='Turn on debug output.'
+                        )
+
+    parser.add_argument('--quiet',
+                        action="store_true",
+                        help='Turn off all non-essential debug output'
+                        )
+
     args = parser.parse_args()
 
     return args
@@ -138,11 +147,13 @@ def parse_args():
 def main():
     """
     Run script
-    """"
+    """
 
     start = datetime.datetime.now()
 
-    logfile = "prepipe_process_ccd_{}.log".format(
+    args = parse_args()
+
+    logfile = "prepipe_preprocess_{}.log".format(
         start.strftime("%Y%m%d_%H:%M:%S")
     )
 
@@ -152,10 +163,9 @@ def main():
     if missfits_path is None:
         raise Exception("Path to MISSFITS is not specified")
 
-    args = parse_args()
-    logging.debug("Running with arguments:")
+    logger.debug("Running with arguments:")
     for arg, value in sorted(vars(args).items()):
-        logging.debug(f"{arg}: {value}")
+        logger.debug(f"{arg}: {value}")
 
     if args.mpi:
         from mpi4py import MPI
@@ -187,24 +197,35 @@ def main():
         myframes = frames
 
     # list a few astromatic config files
-    sexconf = importlib.resources.path("dwfprepipe.data.config",
-                                       "scamp.sex"
-                                       )
-    nnwname = importlib.resources.path("dwfprepipe.data.config",
-                                       "default.nnw"
-                                       )
-    filtname = importlib.resources.path("dwfprepipe.data.config",
-                                        "default.conv"
-                                        )
-    paramname = importlib.resources.path("dwfprepipe.data.config",
-                                         "scamp.param"
-                                         )
-    scampconf = importlib.resources.path("dwfprepipe.data.config",
-                                         "scamp.conf"
-                                         )
-    missfitsconf = importlib.resources.path("dwfprepipe.data.config",
-                                            "missfits.conf"
-                                            )
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "scamp.sex"
+    ) as path:
+        sexconf = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "default.nnw"
+    ) as path:
+        nnwname = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "default.conv"
+    ) as path:
+        filtname = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "scamp.param"
+    ) as path:
+        paramname = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "scamp.conf"
+    ) as path:
+        scampconf = path
+
+    with importlib.resources.path(
+        "dwfprepipe.data.config", "missfits.conf"
+    ) as path:
+        missfitsconf = path
 
     # pass these constant options to sextractor
     clargs = ' -PARAMETERS_NAME %s -FILTER_NAME %s -STARNNW_NAME %s' % (
@@ -215,15 +236,17 @@ def main():
         with fits.open(frame) as hdul:
             ihdu, mhdu = overscan_and_mask_single(hdul[0])
             ccdnum_header = hdul[0].header["CCDNUM"]
-            bpm_file = f"DECam_Master_20140209v2_cd_{ccdnum_header:.0f}.fits"
-            bpm_name = importlib.resources.path("dwfprepipe.data.bpm",
-                                                bpm_file
-                                                )
 
-        with (fits.open(flat) as fl,
-              fits.open(bias) as b,
-              fits.open(bpm_name) as bp
-              ):
+            bpm_file = f"DECam_Master_20140209v2_cd_{ccdnum_header:.0f}.fits"
+            with importlib.resources.path(
+                "dwfprepipe.data.bpm", bpm_file
+            ) as path:
+                bpm_name = path
+
+        with \
+                fits.open(flat) as fl, \
+                fits.open(bias) as b, \
+                fits.open(bpm_name) as bp:
 
             fhdu = fl[0]
             bhdu = b[0]
