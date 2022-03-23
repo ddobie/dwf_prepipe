@@ -94,16 +94,17 @@ def wait_for_file(filepath: Union[str, Path],
         filepath = Path(filepath)
 
     waited_time = 0
-    fsize_old = filepath.stat().st_size
 
     while True:
         time.sleep(wait_time)
         waited_time += wait_time
-
-        fsize_new = filepath.stat().st_size
-        if fsize_new == fsize_old:
+         
+        try:
+            filepath.rename(filepath)
+        except PermissionError:            
+            if waited_time > max_wait:
+                return False
+            else:
+                continue
+        else:
             return True
-        elif waited_time > max_wait:
-            return False
-
-        fsize_old = fsize_new
