@@ -360,7 +360,7 @@ def main():
     if args.local:
         # Move .jp2 to local directory
         logger.info(
-            'Moving {untar_path / file_name} to {local_dir / file_name'
+            f'Moving {untar_path / file_name} to {local_dir / file_name'
         )
         shutil.move(untar_path / file_name, local_dir / file_name)
         untar_path = local_dir
@@ -370,7 +370,7 @@ def main():
     uncompressed_fits = untar_path / fits_file
     logger.info('--------*****')
     logger.info(uncompressed_fits)
-    logger.info('Uncompressing: {file_name} in path: {untar_path}')
+    logger.info(f'Uncompressing: {file_name} in path: {untar_path}')
     logger.info('--------*****')
     uncompress_call = ['j2f_DECam',
                        '-i',
