@@ -5,10 +5,14 @@ import shutil
 import argparse
 import subprocess
 import glob
-import importlib.resources
 # ~/.astropy/config/astropy.cfg was getting messed up -
 # seperate default (used by pipeloop?) and this
 # os.environ['XDG_CONFIG_HOME']='/home/fstars/.python3_config/'
+
+try:
+    import importlib.resources as resources
+except:
+    import importlib_resources as resources
 
 import astropy.io.fits as pyfits
 
@@ -471,7 +475,7 @@ def main():
 
     # Call Danny's preprocess code for CCD reduction
     with (
-        importlib.resources.path("dwfprepipe.bin",
+        resources.path("dwfprepipe.bin",
                                  "prepipe_preprocess.py")
     ) as path:
         preprocess_path = path
