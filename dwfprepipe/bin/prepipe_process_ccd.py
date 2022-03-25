@@ -413,7 +413,7 @@ def main():
         calib_file = True
 
     ut_dir = photepipe_rawdir / ut
-    workspace_ut_dir = photepipe_workspace
+    workspace_ut_dir = photepipe_workspace / ut
 
     # if not ut_dir.is_dir():
     #    ut_dir.mkdir()
@@ -432,8 +432,8 @@ def main():
     shutil.move(uncompressed_fits, dest_dir / newname)
 
     if calib_file:
-        logger.info("File is a calibration file. No further processing required")
-
+        logger.info("File is a calibration file. No further processing required.")
+        exit()
     # Check for and prepare the calibration file lists
     flats_glob_str = str(dest_dir / f"domeflat.{Filter}.master.*")
     checkflats = glob.glob(flats_glob_str)
