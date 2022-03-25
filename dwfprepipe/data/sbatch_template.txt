@@ -24,7 +24,11 @@ echo SBATCH: job name is $SLURM_JOB_NAME
 echo ------------------------------------------------------
 echo Just in case, do the below:
 
+module purge
+module load anaconda3/5.0.1
+
 source ~/.bash_profile
+source ~/.bashrc
 
 conda activate prepipe
 
