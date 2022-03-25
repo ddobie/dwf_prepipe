@@ -2,13 +2,16 @@ import re
 import time
 import math
 import subprocess
-import importlib.resources
 import logging
 
 from pathlib import Path
 from typing import Union, List, Optional
 from dwfprepipe.utils import wait_for_file
 
+try:
+    import importlib.resources as resources
+except:
+    import importlib_resources as resources
 
 class PrepipeInitError(Exception):
     """
@@ -244,7 +247,7 @@ class Prepipe:
 
         qroot_path = self.sbatch_out_dir / qroot
 
-        with importlib.resources.path(
+        with importlib_resources.path(
             "dwfprepipe.data", "sbatch_template.txt"
         ) as sbatch_template_file:
             f = open(sbatch_template_file, "r")
@@ -292,7 +295,7 @@ class Prepipe:
         self.logger.info(f"Creating Script: {sbatch_name} "
                          f"for CCDs {min(ccds)} to {max(ccds)}"
                          )
-        with importlib.resources.path(
+        with importlib_resources.path(
             "dwfprepipe.bin", "prepipe_process_ccd.py"
         ) as process_ccd_script:
             jobs_str_temp = f'{process_ccd_script} ' \
