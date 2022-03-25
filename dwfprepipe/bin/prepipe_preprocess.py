@@ -3,7 +3,11 @@ import os
 import subprocess
 import argparse
 import datetime
-import importlib.resources
+
+try:
+    import importlib.resources as resources
+except:
+    import importlib_resources as resources
 
 import numpy as np
 
@@ -197,32 +201,32 @@ def main():
         myframes = frames
 
     # list a few astromatic config files
-    with importlib.resources.path(
+    with resources.path(
         "dwfprepipe.data.config", "scamp.sex"
     ) as path:
         sexconf = path
 
-    with importlib.resources.path(
+    with resources.path(
         "dwfprepipe.data.config", "default.nnw"
     ) as path:
         nnwname = path
 
-    with importlib.resources.path(
+    with resources.path(
         "dwfprepipe.data.config", "default.conv"
     ) as path:
         filtname = path
 
-    with importlib.resources.path(
+    with resources.path(
         "dwfprepipe.data.config", "scamp.param"
     ) as path:
         paramname = path
 
-    with importlib.resources.path(
+    with resources.path(
         "dwfprepipe.data.config", "scamp.conf"
     ) as path:
         scampconf = path
 
-    with importlib.resources.path(
+    with resources.path(
         "dwfprepipe.data.config", "missfits.conf"
     ) as path:
         missfitsconf = path
@@ -238,7 +242,7 @@ def main():
             ccdnum_header = hdul[0].header["CCDNUM"]
 
             bpm_file = f"DECam_Master_20140209v2_cd_{ccdnum_header:.0f}.fits"
-            with importlib.resources.path(
+            with resources.path(
                 "dwfprepipe.data.bpm", bpm_file
             ) as path:
                 bpm_name = path
