@@ -356,11 +356,10 @@ class Prepipe:
                 self.process_file(f)
                 self.logger.info(f"Finished processing {f}!")
                 if i == len(added) - 1:
-                    self.logger.info(f"All added files processed. Returning to "
-                                     "monitoring {self.path_to_watch}...\n"
+                    self.logger.info(f"Returning to monitoring {self.path_to_watch}..."
                                      )
 
             if not added:
-                time.sleep(5)
+                time.sleep(3)
 
             before = after
