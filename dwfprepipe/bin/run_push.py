@@ -115,7 +115,7 @@ def main():
 
     Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
 
-    if Push.method == 'end of night':
+    if Push.push_method == 'end of night':
         Push.process_endofnight(args.exp_min)
     else:
         Push.listen()
