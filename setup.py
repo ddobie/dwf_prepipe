@@ -13,11 +13,11 @@ setup(
     description='Python module for DWF processing',
     install_requires=[],
     scripts=[
-        "bin/prepipe_preprocess.py",
-        "bin/prepipe_process_ccd.py",
-        "bin/prepipe_reprocess.py",
-        "bin/run_prepipe.py",
-        "bin/run_push.py",
+        "dwfprepipe/bin/prepipe_preprocess.py",
+        "dwfprepipe/bin/prepipe_process_ccd.py",
+        "dwfprepipe/bin/prepipe_reprocess.py",
+        "dwfprepipe/bin/run_prepipe.py",
+        "dwfprepipe/bin/run_push.py",
     ],
     include_package_data=True
 )
