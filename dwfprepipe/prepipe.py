@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Union, List, Optional
 from dwfprepipe.utils import wait_for_file
 
+from timeit import default_timer as timer
 
 class PrepipeInitError(Exception):
     """
@@ -317,12 +318,12 @@ class Prepipe:
             else:
                 logger.critical(f"{sbatch_name} does not exist!")
 
-    def listen(self):
+    def listen(self, warning_time=60):
         """
         Listen for files to process.
 
         Args:
-            None
+            warning_time: Number of seconds to wait for a new file before warning the user
 
         Returns:
             None
@@ -335,6 +336,7 @@ class Prepipe:
         self.logger.debug(f"Checking files with glob string: {glob_str}")
         before = list(self.path_to_watch.glob(glob_str))
         self.logger.debug(f"Existing files: {before}")
+        last_file_time = timer()
         while True:
             after = list(self.path_to_watch.glob(glob_str))
             self.logger.debug(f"Current files: {after}")
@@ -342,6 +344,7 @@ class Prepipe:
             removed = [str(f) for f in before if f not in after]
 
             if added:
+                last_file_time = timer()
                 added_str = ", ".join(added)
                 self.logger.info(f"Added: {added_str}")
             if removed:
@@ -361,5 +364,9 @@ class Prepipe:
 
             if not added:
                 time.sleep(3)
+                current_time = timer()
+                time_since_file = current_time - last_file_time
+                if time_since_file > warning_time:
+                    self.logger.warning(f"No new files in {time_since_file:.0f} seconds!")
 
             before = after
