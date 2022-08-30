@@ -8,4 +8,4 @@ as part of a DWF run.
 '''
 
 __author__ = 'Dougal Dobie'
-__version__ = "2.0.2-dev"
+__version__ = "2.0.3-dev"
