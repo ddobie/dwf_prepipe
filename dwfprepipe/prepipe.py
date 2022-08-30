@@ -165,7 +165,7 @@ class Prepipe:
                      file_name: Union[Path, str],
                      ccdlist: Union[List[int], None] = None,
                      n_per_ccd: int = 15,
-                     bad_ccds: Union[List[str], None]] = ['33']
+                     bad_ccds: Union[List[str], None] = ['33']
                      ):
         """
         Run the complete processing on a single file
