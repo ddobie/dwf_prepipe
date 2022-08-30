@@ -164,7 +164,8 @@ class Prepipe:
     def process_file(self,
                      file_name: Union[Path, str],
                      ccdlist: Union[List[int], None] = None,
-                     n_per_ccd: int = 15
+                     n_per_ccd: int = 15,
+                     bad_ccds: Union[List[str], None]] = ['33']
                      ):
         """
         Run the complete processing on a single file
@@ -173,6 +174,7 @@ class Prepipe:
             file_name: File to unpack
             ccdlist: List of CCDs to process, defaults to None.
             n_per_ccd:
+            bad_ccds: list of ccds to ignore.
 
         Returns:
             None
@@ -181,6 +183,8 @@ class Prepipe:
         self.logger.info(f"Processing {file_name}...")
         if ccdlist is None:
             ccdlist = list(map(str, range(1, 60)))
+            for bad_ccd in bad_ccds:
+                ccdlist.remove(bad_ccd)
 
         file_name = Path(file_name)
 
