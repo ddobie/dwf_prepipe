@@ -25,6 +25,7 @@ class Prepipe:
                  run_date: str,
                  res_name: Optional[str] = None,
                  dry_run: bool = False,
+                 compress: str = True,
                  ):
         """
         Constructor method.
@@ -51,6 +52,7 @@ class Prepipe:
         self.path_to_sbatch = Path(path_to_sbatch)
         self.run_date = run_date
         self.dry_run = dry_run
+        self.compress = compress
         self.sbatch_out_dir = self.path_to_sbatch / 'out'
 
         self.set_sbatch_vars(res_name)
@@ -285,7 +287,7 @@ class Prepipe:
         DECam_root = file_name.stem
         qroot = f'{DECam_root}_q{script_num+1}'
 
-        image_list = [f'{DECam_root}_{f}.jp2' for f in ccds]
+        image_list = [f'{DECam_root}_{f}.comp.fits' for f in ccds]
 
         sbatch_name = self.path_to_sbatch / f'{qroot}.sbatch'
 

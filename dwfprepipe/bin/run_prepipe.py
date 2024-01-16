@@ -42,6 +42,10 @@ def parse_args():
                         help='Ozstar reservation name.'
                         )
 
+    parser.add_argument('--compress', action='store_true')
+    parser.add_argument('--no-compress', dest='compress', action='store_false')
+    parser.set_defaults(compress=True)
+
     args = parser.parse_args()
 
     if args.push_dir is None:
@@ -84,7 +88,8 @@ def main():
                       path_to_untar,
                       path_to_sbatch,
                       args.run_date,
-                      args.res_name
+                      args.res_name,
+                      compress=args.compress
                       )
 
     prepipe.listen()
