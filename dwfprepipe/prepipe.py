@@ -287,7 +287,7 @@ class Prepipe:
         DECam_root = file_name.stem
         qroot = f'{DECam_root}_q{script_num+1}'
 
-        image_list = [f'{DECam_root}_{f}.comp.fits' for f in ccds]
+        image_list = [f'{DECam_root}_{f}.jp2' for f in ccds]
 
         sbatch_name = self.path_to_sbatch / f'{qroot}.sbatch'
 
