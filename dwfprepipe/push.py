@@ -22,7 +22,12 @@ class CTIOPush:
                  path_to_watch: Union[str, Path],
                  Qs: float,
                  push_method: str,
-                 nbundle: int
+                 nbundle: int,
+                 compress: bool = True,
+                 target_user: str = 'fstars',
+                 target_host: str = 'ozstar.swin.edu.au',
+                 target_push_dir: Union[str, Path] = '/fred/oz100/fstars/push/',
+                 target_listen_dir: Union[str, Path] = '/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/'
                  ):
         """
         Constructor method.
@@ -33,6 +38,7 @@ class CTIOPush:
             push_method: Method to push data with.
             nbundle: Number of files to bundle together. Only relevant if
                 `push_method` is set to `bundle`.
+            compress: Whether to run J2000 compression on images.
 
         Returns:
             None
@@ -57,10 +63,16 @@ class CTIOPush:
 
         self.push_method = push_method
         self.nbundle = nbundle
+        self.compress = compress
 
         self.jp2_dir = self.path_to_watch / 'jp2'
 
-        self.set_ssh_config()
+        self.set_ssh_config(
+            user=target_user,
+            host=target_host,
+            push_dir=target_push_dir,
+            target_dir=target_listen_dir,
+            )
 
         valid_settings = self._validate_settings()
         if not valid_settings:
@@ -168,41 +180,49 @@ class CTIOPush:
 
         filepath = Path(filepath)
         file_name = filepath.name
+        self.logger.info(f"Packaging {filepath} for shipping...")
+        
 
-        self.logger.info(f'Unpacking: {file_name}')
-
-        fz_path = self.data_dir / file_name.with_suffix('.fits.fz')
-
-        subprocess.run(['funpack', str(fz_path)])
+        fz_path = self.path_to_watch / file_name
 
         jp2_dest = self.jp2_dir / file_name
         if not jp2_dest.is_dir():
             self.logger.info(f'Creating Directory: {jp2_dest}')
             jp2_dest.mkdir()
 
-        self.logger.info(f'Compressing: {file_name}')
-        fitsfile = file_name.with_suffix('.fits')
-        jp2file = file_name.with_suffix('.jp2')
+        if self.compress:
+            self.logger.info(f'Unpacking: {file_name}')
+            subprocess.run(['funpack', str(fz_path)])
+            self.logger.info(f'Compressing: {file_name}')
+            fitsfile = file_name.with_suffix('.fits')
+            jp2file = file_name.with_suffix('.jp2')
 
-        subprocess.run(['time',
-                        'f2j_DECam',
-                        '-i',
-                        str(self.data_dir / fitsfile),
-                        '-o',
-                        str(self.jp2_dir / jp2file),
-                        f'Qstep={self.Qs}',
-                        '-num_threads',
-                        '1']
-                       )
+            subprocess.run(['time',
+                            'f2j_DECam',
+                            '-i',
+                            str(self.path_to_watch / fitsfile),
+                            '-o',
+                            str(self.jp2_dir / jp2file),
+                            f'Qstep={self.Qs}',
+                            '-num_threads',
+                            '1']
+                           )
+            file_to_package = self.jp2_dir / jp2file
+            packaged_file = self.jp2_dir / Path(file_name).with_suffix('.tar')
+        else:
+            file_to_package = fz_path
+            packaged_file = self.jp2_dir / file_name.replace('.fits.fz', '.tar')
 
-        packaged_file = self.jp2_dir / file_name.with_suffix('.tar')
+        self.logger.debug(f'file to package: {file_to_package}')
+        self.logger.debug(f'packaged_file: {packaged_file}')
+        
         self.logger.info(f'Packaging: {packaged_file}')
         subprocess.run(['tar',
                         '-cf',
                         str(packaged_file),
                         '-C',
-                        str(jp2_path),
-                        '.']
+                        '.',
+                        str(file_to_package)]
                        )
 
     def pushfile(self, filepath: Union[str, Path], parallel: bool = False):
@@ -220,14 +240,18 @@ class CTIOPush:
         filepath = Path(filepath)
 
         file_name = filepath.name
-
-        tar_path = self.jp2_dir / file_name.with_suffix('.tar')
+        if self.compress:
+            tar_name =  Path(file_name).with_suffix('.tar')
+        else:
+            tar_name =  file_name.replace('.fits.fz','.tar')
+            
+        tar_path = self.jp2_dir / tar_name
 
         self.logger.info(f'Shipping: {tar_path}')
 
         command = (f"scp {tar_path} {self.reciever}:{self.push_dir}; "
                    f"ssh {self.reciever} "
-                   f"'mv {self.push_dir / file_name}.tar {self.target_dir}'; "
+                   f"'mv {self.push_dir / tar_name} {self.target_dir}'; "
                    f"rm {tar_path}"
                    )
 
@@ -248,20 +272,21 @@ class CTIOPush:
             None
         """
 
-        file_name = filepath.name
+        file_name = Path(filepath).name
 
-        fits_path = self.data_dir / file_name.with_suffix('.fits')
+        fits_path = self.path_to_watch / Path(file_name).with_suffix('.fits')
 
         # remove funpacked .fits file
-        self.logger.info(f'Removing: {fits_path}')
-        fits_path.unlink()
+        if fits_path.is_file():
+            self.logger.info(f'Removing: {fits_path}')
+            fits_path.unlink()
 
         # Remove .jp2 files
-        jp2_path = self.jp2_dir / file_name.with_suffix('.jp2')
-        self.logger.info(f'Cleaning: {self.jp2_dir}')
-        for jp2 in self.jp2_dir.iterdir():
-            if jp2.suffix == ".jp2":
-                jp2.unlink()
+        if self.compress:
+            self.logger.info(f'Cleaning: {self.jp2_dir}')
+            for jp2 in self.jp2_dir.iterdir():
+                if jp2.suffix == ".jp2":
+                    jp2.unlink()
 
     def process_endofnight(self, exp_min):
         """
@@ -288,7 +313,7 @@ class CTIOPush:
                 sent_files.append(file_name)
 
         obs_list = []
-        for f in self.data_dir.glob('*.fits.fz'):
+        for f in self.path_to_watch.glob('*.fits.fz'):
             obs = Path(f).stem
             obs_list.append(obs)
 
@@ -408,28 +433,27 @@ class CTIOPush:
         self.logger.info("Now running!")
         self.logger.info(f"Monitoring: {self.path_to_watch}")
 
-        glob_str = str(self.path_to_watch) + '*.fits.fz'
-
-        before = glob.glob(glob_str)
+        before = list(self.path_to_watch.glob('*.fits.fz'))
+        self.logger.debug(f"Existing files: {before}")
 
         while True:
-            after = glob.glob(glob_str)
-            added = [f for f in after if f not in before]
-            removed = [f for f in before if f not in after]
+            after = list(self.path_to_watch.glob('*.fits.fz'))
+            added = [str(f) for f in after if f not in before]
+            removed = [str(f) for f in before if f not in after]
 
             if added:
-                logger.info("Added: {}".format(', '.join(added)))
+                self.logger.info("Added: {}".format(', '.join(added)))
 
-                if self.method == 'parallel':
+                if self.push_method == 'parallel':
                     self.process_parallel(added)
-                elif self.method == 'serial':
+                elif self.push_method == 'serial':
                     self.process_serial(added[-1])
-                elif self.method == 'bundle':
+                elif self.push_method == 'bundle':
                     self.process_bundle(added)
 
             if removed:
                 removed_str = ', '.join(removed)
-                logger.info(f"Removed: {removed_str}")
+                self.logger.info(f"Removed: {removed_str}")
 
             before = after
 

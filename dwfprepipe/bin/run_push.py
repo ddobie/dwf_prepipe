@@ -25,6 +25,34 @@ def parse_args():
                              'DATA_DIR environment variable.'
                         )
 
+    parser.add_argument('--ssh-user',
+                        type=str,
+                        default='fstars',
+                        help=''
+                        )
+    parser.add_argument('--ssh-host',
+                        type=str,
+                        default='ozstar.swin.edu.au',
+                        help=''
+                        )
+
+    parser.add_argument('--target-push-dir',
+                        type=str,
+                        default='/fred/oz100/fstars/push/',
+                        help=''
+                        )
+
+    parser.add_argument('--target-listen-dir',
+                        type=str,
+                        default='/fred/oz100/pipes/DWF_PIPE/CTIO_PUSH/',
+                        help=''
+                        )
+
+
+    parser.add_argument('--compress', action='store_true')
+    parser.add_argument('--no-compress', dest='compress', action='store_false')
+    parser.set_defaults(compress=True)
+
     parser.add_argument('-q',
                         '--Qs',
                         type=float,
@@ -81,15 +109,16 @@ def parse_args():
         else:
             args.data_dir = default_data_dir
 
-    if args.Qs is None:
-        default_Qs = os.getenv("QS")
-        if default_Qs is None:
-            raise Exception("No compression ratio provided. Please set it by "
-                            "passing the --Qs argument, or by setting "
-                            "The QS environment variable."
-                            )
-        else:
-            args.Qs = default_Qs
+    if args.compress:
+        if args.Qs is None:
+            default_Qs = os.getenv("QS")
+            if default_Qs is None:
+                raise Exception("No compression ratio provided. Please set it by "
+                                "passing the --Qs argument, or by setting "
+                                "The QS environment variable."
+                                )
+            else:
+                args.Qs = default_Qs
 
     return args
 
@@ -113,9 +142,17 @@ def main():
     for arg, value in sorted(vars(args).items()):
         logger.debug(f"{arg}: {value}")
 
-    Push = CTIOPush(args.data_dir, args.Qs, args.method, args.nbundle)
+    Push = CTIOPush(args.data_dir,
+                    args.Qs,
+                    args.method,
+                    args.nbundle,
+                    compress=args.compress,
+                    target_user=args.ssh_user,
+                    target_host=args.ssh_host,
+                    target_push_dir=args.target_push_dir,
+                    target_listen_dir=args.target_listen_dir)
 
-    if Push.method == 'end of night':
+    if Push.push_method == 'end of night':
         Push.process_endofnight(args.exp_min)
     else:
         Push.listen()
