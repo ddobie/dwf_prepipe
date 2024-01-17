@@ -360,7 +360,7 @@ def main():
     if args.local:
         # Move .jp2 to local directory
         logger.info(
-            'Moving {untar_path / file_name} to {local_dir / file_name'
+            f'Moving {untar_path / file_name} to {local_dir / file_name}'
         )
         shutil.move(untar_path / file_name, local_dir / file_name)
         untar_path = local_dir
@@ -370,7 +370,7 @@ def main():
     uncompressed_fits = untar_path / fits_file
     logger.info('--------*****')
     logger.info(uncompressed_fits)
-    logger.info('Uncompressing: {file_name} in path: {untar_path}')
+    logger.info(f'Uncompressing: {file_name} in path: {untar_path}')
     logger.info('--------*****')
     uncompress_call = ['j2f_DECam',
                        '-i',
@@ -404,13 +404,16 @@ def main():
     obstype = pyfits.getval(uncompressed_fits, "OBSTYPE")
 
     newname = f"{Field}.{Filter}.{ut}.{exp}_{ccd_num}.fits"
+    calib_file = False
     if((obstype == 'dome flat') or (obstype == 'domeflat')):
         newname = f"domeflat.{Filter}.{ut}.{exp}_{ccd_num}.fits"
+        calib_file = True
     if((obstype == 'zero') or (obstype == 'bias')):
         newname = f"bias.{ut}.{exp}_{ccd_num}.fits"
+        calib_file = True
 
     ut_dir = photepipe_rawdir / ut
-    workspace_ut_dir = photepipe_workspace
+    workspace_ut_dir = photepipe_workspace / ut
 
     # if not ut_dir.is_dir():
     #    ut_dir.mkdir()
@@ -428,6 +431,9 @@ def main():
     logger.info(f'Moving {uncompressed_fits} to {dest_dir / newname}')
     shutil.move(uncompressed_fits, dest_dir / newname)
 
+    if calib_file:
+        logger.info("File is a calibration file. No further processing required.")
+        exit()
     # Check for and prepare the calibration file lists
     flats_glob_str = str(dest_dir / f"domeflat.{Filter}.master.*")
     checkflats = glob.glob(flats_glob_str)

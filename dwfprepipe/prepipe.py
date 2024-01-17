@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Union, List, Optional
 from dwfprepipe.utils import wait_for_file
 
+from timeit import default_timer as timer
 
 class PrepipeInitError(Exception):
     """
@@ -165,7 +166,8 @@ class Prepipe:
     def process_file(self,
                      file_name: Union[Path, str],
                      ccdlist: Union[List[int], None] = None,
-                     n_per_ccd: int = 15
+                     n_per_ccd: int = 15,
+                     bad_ccds: Union[List[str], None] = ['33']
                      ):
         """
         Run the complete processing on a single file
@@ -174,6 +176,7 @@ class Prepipe:
             file_name: File to unpack
             ccdlist: List of CCDs to process, defaults to None.
             n_per_ccd:
+            bad_ccds: list of ccds to ignore.
 
         Returns:
             None
@@ -182,6 +185,8 @@ class Prepipe:
         self.logger.info(f"Processing {file_name}...")
         if ccdlist is None:
             ccdlist = list(map(str, range(1, 60)))
+            for bad_ccd in bad_ccds:
+                ccdlist.remove(bad_ccd)
 
         file_name = Path(file_name)
 
@@ -353,12 +358,12 @@ class Prepipe:
             else:
                 logger.critical(f"{sbatch_name} does not exist!")
 
-    def listen(self):
+    def listen(self, warning_time=60):
         """
         Listen for files to process.
 
         Args:
-            None
+            warning_time: Number of seconds to wait for a new file before warning the user
 
         Returns:
             None
@@ -371,6 +376,7 @@ class Prepipe:
         self.logger.debug(f"Checking files with glob string: {glob_str}")
         before = list(self.path_to_watch.glob(glob_str))
         self.logger.debug(f"Existing files: {before}")
+        last_file_time = timer()
         while True:
             after = list(self.path_to_watch.glob(glob_str))
             self.logger.debug(f"Current files: {after}")
@@ -378,6 +384,7 @@ class Prepipe:
             removed = [str(f) for f in before if f not in after]
 
             if added:
+                last_file_time = timer()
                 added_str = ", ".join(added)
                 self.logger.info(f"Added: {added_str}")
             if removed:
@@ -392,11 +399,14 @@ class Prepipe:
                 self.process_file(f)
                 self.logger.info(f"Finished processing {f}!")
                 if i == len(added) - 1:
-                    self.logger.info("All added files processed. Returning to "
-                                     "monitoring {self.path_to_watch}...\n"
+                    self.logger.info(f"Returning to monitoring {self.path_to_watch}..."
                                      )
 
             if not added:
-                time.sleep(5)
+                time.sleep(3)
+                current_time = timer()
+                time_since_file = current_time - last_file_time
+                if time_since_file > warning_time:
+                    self.logger.warning(f"No new files in {time_since_file:.0f} seconds!")
 
             before = after
