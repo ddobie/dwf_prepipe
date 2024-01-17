@@ -76,7 +76,7 @@ def get_logger(debug: bool,
 
 
 def wait_for_file(filepath: Union[str, Path],
-                  wait_time: Union[int, float] = 20,
+                  wait_time: Union[int, float] = 30,
                   max_wait: Union[int, float] = 150
                   ):
     """
