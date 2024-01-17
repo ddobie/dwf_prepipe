@@ -238,6 +238,7 @@ class Prepipe:
 
             new_hdu = fits.PrimaryHDU(data=hdu.data, header=new_header)
             new_hdu.writeto(output_dir / new_file_name, overwrite=True)
+            self.logger.debug(f"Wrote {output_dir / new_file_name}")
         
         
     def unpack(self,
