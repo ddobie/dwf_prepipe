@@ -76,8 +76,8 @@ def get_logger(debug: bool,
 
 
 def wait_for_file(filepath: Union[str, Path],
-                  wait_time: Union[int, float] = 0.5,
-                  max_wait: Union[int, float] = 15
+                  wait_time: Union[int, float] = 3,
+                  max_wait: Union[int, float] = 120
                   ):
     """
     Check if a file is still being written, and if so, wait for it to finish.
