@@ -306,7 +306,7 @@ class CTIOPush:
 
         obs_list = []
         for f in self.path_to_watch.glob('*.fits.fz'):
-            obs = Path(f).stem
+            obs = str(f).split('/')[-1].replace('*.fits.fz','')
             obs_list.append(obs)
 
         obs_list.sort(reverse=True)
