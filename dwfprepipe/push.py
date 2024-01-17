@@ -289,10 +289,14 @@ class CTIOPush:
 
         # Get list of files in remote target directory
         # & list of files in local directory
-        get_file_command = (f"ssh {self.user}@{self.host}"
-                            f"ls {self.target_dir}*.tar"
-                            )
-        remote_list = subprocess.getoutput(get_file_command)
+        get_file_command = ["ssh", f"{self.user}@{self.host}","\n",
+                            "ls",f"{self.target_dir}*.tar"]
+        ssh = subprocess.Popen(get_file_command,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+        remote_list = ssh.stdout.readlines()
+        remote_list = [tarfile.replace('\n','') 
+                       for tarfile in remote_list]
 
         sent_files = []
         for filepath in remote_list.splitlines():
