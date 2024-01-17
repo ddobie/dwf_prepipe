@@ -117,7 +117,7 @@ class Prepipe:
 
     def set_sbatch_vars(self,
                         res_name: Union[str, None] = None,
-                        walltime: str = '00:20:00',
+                        walltime: str = '00:05:00',
                         queue: str = 'bryan',
                         nodes: int = 1,
                         ppn: int = 16,
