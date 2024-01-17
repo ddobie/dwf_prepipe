@@ -255,6 +255,9 @@ def parse_args():
                         default=None,
                         help='Directory with Gaia data'
                         )
+    parser.add_argument('--compress', action='store_true')
+    parser.add_argument('--no-compress', dest='compress', action='store_false')
+    parser.set_defaults(compress=True)
 
     args = parser.parse_args()
 
@@ -356,32 +359,40 @@ def main():
     file_name = args.input_file
     DECam_Root = file_name.split('.')[0]
     ccd_num = DECam_Root.split('_')[2]
+    
+    
+    fits_file = DECam_Root + '.fits'
 
     if args.local:
         # Move .jp2 to local directory
-        logger.info(
-            f'Moving {untar_path / file_name} to {local_dir / file_name}'
-        )
-        shutil.move(untar_path / file_name, local_dir / file_name)
+        if args.compress:
+            logger.info(
+                f'Moving {untar_path / file_name} to {local_dir / file_name}'
+            )
+            shutil.move(untar_path / file_name, local_dir / file_name)
+        else:
+            logger.info(
+                f'Moving {untar_path / file_name} to {local_dir / file_name}'
+            )
+            shutil.move(untar_path / fits_file, local_dir / fits_file)
         untar_path = local_dir
-
-    # Uncompress Fits on local Directory
-    fits_file = DECam_Root + '.fits'
+    
     uncompressed_fits = untar_path / fits_file
-    logger.info('--------*****')
-    logger.info(uncompressed_fits)
-    logger.info(f'Uncompressing: {file_name} in path: {untar_path}')
-    logger.info('--------*****')
-    uncompress_call = ['j2f_DECam',
-                       '-i',
-                       str(untar_path / file_name),
-                       '-o',
-                       str(uncompressed_fits),
-                       '-num_threads',
-                       str(1)
-                       ]
-    logger.info(f'Running {" ".join(uncompress_call)}')
-    subprocess.run(uncompress_call)
+    if args.compress:
+        logger.info('--------*****')
+        logger.info(uncompressed_fits)
+        logger.info(f'Uncompressing: {file_name} in path: {untar_path}')
+        logger.info('--------*****')
+        uncompress_call = ['j2f_DECam',
+                           '-i',
+                           str(untar_path / file_name),
+                           '-o',
+                           str(uncompressed_fits),
+                           '-num_threads',
+                           str(1)
+                           ]
+        logger.info(f'Running {" ".join(uncompress_call)}')
+        subprocess.run(uncompress_call)
 
     # Extract nescessary information from file for naming scheme
     exp = pyfits.getval(uncompressed_fits, "EXPNUM")
