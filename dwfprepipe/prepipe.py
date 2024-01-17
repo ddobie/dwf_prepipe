@@ -197,6 +197,33 @@ class Prepipe:
             ccds = ccdlist[n_per_ccd * script_num:(script_num + 1) * n_per_ccd]
             self.sbatchccds(file_name, script_num, ccds)
 
+    def split_ccds(self,
+                   filepath_in: Union[Path, str],
+                   output_dir: Union[Path, str],
+                   ):
+        """
+        Split fits file into individual CCDs
+        """
+        self.logger.info(f"Splitting {filepath_in} into CCDs")
+        output_dir = Path(output_dir)
+        
+        hdul = fits.open(filepath_in)
+
+        for ext in range(len(hdul)):
+            if ext == 0:
+                continue
+            file_name = filepath.name
+            new_file_name = file_name.replace('.fits.fz',f'_{ext}.fits')
+            
+            hdu = hdul[ext]
+            
+            if hdu.data.shape[0] != 4146:
+                continue
+            new_hdu = fits.PrimaryHDU(data=hdu.data, header=hdu.header)
+            
+            new_hdu.writeto(output_dir / new_file_name)
+        
+        
     def unpack(self,
                file_name: Union[Path, str]
                ):
@@ -224,6 +251,11 @@ class Prepipe:
         except subprocess.CalledProcessError:
             self.logger.critical(f"FAILED UN-TAR {file_name}. Skipping...")
             return False
+
+        if not self.compress:
+            in_file = self.path_to_untar / file_name.replace('.tar','.fits.fz')
+            out_dir = self.path_to_untar
+            split_ccds(in_file, out_dir)
 
         return True
 
@@ -303,6 +335,8 @@ class Prepipe:
                             f'-p {self.path_to_watch} ' \
                             f'-l --local-dir {self.path_to_untar} ' \
                             '&\n'
+            if not self.compress:
+                jobs_str_temp.replace('&\n', '--no-compress &\n')
 
         jobs_str = ''
         for image in image_list:
