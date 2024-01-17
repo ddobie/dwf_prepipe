@@ -120,7 +120,7 @@ class Prepipe:
                         walltime: str = '00:05:00',
                         queue: str = 'bryan',
                         nodes: int = 1,
-                        ppn: int = 16,
+                        ppn: int = 4,
                         mem: str = '90G',
                         tmp: str = '4G',
                         ozstar_proj: str = 'oz100'
@@ -168,7 +168,7 @@ class Prepipe:
     def process_file(self,
                      file_name: Union[Path, str],
                      ccdlist: Union[List[int], None] = None,
-                     n_per_ccd: int = 5,
+                     n_per_ccd: int = 4,
                      bad_ccds: Union[List[str], None] = ['33']
                      ):
         """
