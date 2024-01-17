@@ -299,7 +299,7 @@ class CTIOPush:
                        for tarfile in remote_list]
 
         sent_files = []
-        for filepath in remote_list.splitlines():
+        for filepath in remote_list:
             if filepath.endswith(".tar"):
                 file_name = Path(filepath).stem
                 sent_files.append(file_name)
@@ -323,7 +323,7 @@ class CTIOPush:
                          )
         with logging_redirect_tqdm():
             for i, f in tqdm.tqdm(enumerate(missing), total=num_missing):
-                exp_num = int(f.split('_')[1])
+                exp_num = int(f.split('_')[1].split('.')[0])
                 if exp_num > exp_min:
                     self.logger.info(f'Processing: {f} ({i} of {num_missing})')
                     self.packagefile(f)
