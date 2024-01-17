@@ -407,7 +407,7 @@ class Prepipe:
                 self.logger.info(f"Removed: {removed_str}")
 
             for i, f in enumerate(added):
-                if not wait_for_file(f):
+                if not wait_for_file(f, wait_time=3):
                     self.logger.info(f'{f} not written in time! Skipping...')
                     continue
 
