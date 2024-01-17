@@ -215,6 +215,8 @@ class Prepipe:
         output_dir = Path(output_dir)
         
         hdul = fits.open(filepath_in)
+        
+        primary_header = hdul[0].header
 
         for ext in range(len(hdul)):
             if ext == 0:
@@ -226,8 +228,15 @@ class Prepipe:
             
             if hdu.data.shape[0] != 4146:
                 continue
-            new_hdu = fits.PrimaryHDU(data=hdu.data, header=hdu.header)
             
+            new_header = hdu.header
+            for key in primary_header:
+                if key not in new_header:
+                    if str(key).startswith('COMMENT') or str(key) == 'HISTORY':
+                        continue
+                    new_header[key] = primary_header[key]
+
+            new_hdu = fits.PrimaryHDU(data=hdu.data, header=new_header)
             new_hdu.writeto(output_dir / new_file_name, overwrite=True)
         
         
