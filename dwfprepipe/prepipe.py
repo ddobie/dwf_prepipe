@@ -346,7 +346,7 @@ class Prepipe:
                             '&\n'
             if not self.compress:
                 self.logger.debug("Adding no-compress to sbatch call")
-                jobs_str_temp.replace('&\n', '--no-compress &\n')
+                jobs_str_temp = jobs_str_temp.replace('&\n', '--no-compress &\n')
 
         jobs_str = ''
         for image in image_list:
