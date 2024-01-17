@@ -303,10 +303,15 @@ class CTIOPush:
             if filepath.endswith(".tar"):
                 file_name = Path(filepath).stem
                 sent_files.append(file_name)
-
+        
+        if self.compress:
+            ext = '.tar'
+        else:
+            ext = '.fits.fz'
+        
         obs_list = []
-        for f in self.path_to_watch.glob('*.fits.fz'):
-            obs = str(f).split('/')[-1].replace('.fits.fz','')
+        for f in self.path_to_watch.glob('*' + ext):
+            obs = str(f).split('/')[-1].replace(ext,'')
             obs_list.append(obs)
 
         obs_list.sort(reverse=True)
@@ -325,6 +330,7 @@ class CTIOPush:
             for i, f in tqdm.tqdm(enumerate(missing), total=num_missing):
                 exp_num = int(f.split('_')[1].split('.')[0])
                 if exp_num > exp_min:
+                    f = f + ext
                     self.logger.info(f'Processing: {f} ({i} of {num_missing})')
                     self.packagefile(f)
                     self.pushfile(f)
