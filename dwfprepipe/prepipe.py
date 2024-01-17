@@ -261,12 +261,9 @@ class Prepipe:
             return False
 
         if not self.compress:
-            print()
-            print(self.path_to_untar)
-            print(file_name)
             in_file = self.path_to_untar / str(file_name).replace('.tar','.fits.fz')
             out_dir = self.path_to_untar
-            print(in_file, out_dir)
+
             self.split_ccds(in_file, out_dir)
 
         return True
