@@ -168,7 +168,7 @@ class Prepipe:
     def process_file(self,
                      file_name: Union[Path, str],
                      ccdlist: Union[List[int], None] = None,
-                     n_per_ccd: int = 15,
+                     n_per_ccd: int = 5,
                      bad_ccds: Union[List[str], None] = ['33']
                      ):
         """
