@@ -2,6 +2,8 @@ import time
 import glob
 import subprocess
 import logging
+import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 from pathlib import Path
 from typing import Union
@@ -302,14 +304,14 @@ class CTIOPush:
         self.logger.info(f'Missing {num_missing} of {total_obs} '
                          f'files ({perc}% successful)'
                          )
-
-        for i, f in enumerate(missing):
-            exp_num = int(f.split('_')[1])
-            if exp_num > exp_min:
-                self.logger.info(f'Processing: {f} ({i} of {num_missing})')
-                self.packagefile(f)
-                self.pushfile(f)
-                self.cleantemp(f)
+        with logging_redirect_tqdm():
+            for i, f in tqdm.tqdm(enumerate(missing), total=num_missing):
+                exp_num = int(f.split('_')[1])
+                if exp_num > exp_min:
+                    self.logger.info(f'Processing: {f} ({i} of {num_missing})')
+                    self.packagefile(f)
+                    self.pushfile(f)
+                    self.cleantemp(f)
 
     def process_parallel(self, filelist: list):
         """
