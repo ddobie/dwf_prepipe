@@ -236,7 +236,7 @@ def main():
         with fits.open(frame) as hdul:
             ihdu, mhdu = overscan_and_mask_single(hdul[0])
             ccdnum_header = hdul[0].header["CCDNUM"]
-            ccd_str = '{ccdnum_header:.0f}'.zfill(2)
+            ccd_str = f'{ccdnum_header:.0f}'.zfill(2)
             bpm_file = f"DECam_Master_20140209v2_cd_{ccd_str}.fits"
             with importlib.resources.path(
                 "dwfprepipe.data.bpm", bpm_file
