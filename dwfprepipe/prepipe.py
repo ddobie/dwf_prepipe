@@ -7,6 +7,8 @@ import logging
 
 from pathlib import Path
 from typing import Union, List, Optional
+from astropy.io import fits
+
 from dwfprepipe.utils import wait_for_file
 
 from timeit import default_timer as timer
@@ -217,7 +219,7 @@ class Prepipe:
         for ext in range(len(hdul)):
             if ext == 0:
                 continue
-            file_name = filepath.name
+            file_name = filepath_in.name
             new_file_name = file_name.replace('.fits.fz',f'_{ext}.fits')
             
             hdu = hdul[ext]
@@ -243,6 +245,7 @@ class Prepipe:
         """
 
         self.logger.info(f'Unpacking: {file_name}')
+        file_name = file_name.name
         try:
             subprocess_call = ['tar',
                                '-xf',
@@ -258,9 +261,13 @@ class Prepipe:
             return False
 
         if not self.compress:
-            in_file = self.path_to_untar / file_name.replace('.tar','.fits.fz')
+            print()
+            print(self.path_to_untar)
+            print(file_name)
+            in_file = self.path_to_untar / str(file_name).replace('.tar','.fits.fz')
             out_dir = self.path_to_untar
-            split_ccds(in_file, out_dir)
+            print(in_file, out_dir)
+            self.split_ccds(in_file, out_dir)
 
         return True
 

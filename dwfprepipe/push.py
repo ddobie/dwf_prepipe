@@ -221,8 +221,8 @@ class CTIOPush:
                         '-cf',
                         str(packaged_file),
                         '-C',
-                        '.',
-                        str(file_to_package)]
+                        self.path_to_watch,
+                        str(file_name)]
                        )
 
     def pushfile(self, filepath: Union[str, Path], parallel: bool = False):
