@@ -295,7 +295,7 @@ class CTIOPush:
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
         remote_list = ssh.stdout.readlines()
-        remote_list = [tarfile.replace('\n','') 
+        remote_list = [tarfile.decode('utf-8') 
                        for tarfile in remote_list]
 
         sent_files = []
