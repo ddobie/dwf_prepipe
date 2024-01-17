@@ -372,7 +372,7 @@ def main():
             shutil.move(untar_path / file_name, local_dir / file_name)
         else:
             logger.info(
-                f'Moving {untar_path / file_name} to {local_dir / file_name}'
+                f'Moving {untar_path / fits_file} to {local_dir / fits_file}'
             )
             shutil.move(untar_path / fits_file, local_dir / fits_file)
         untar_path = local_dir
@@ -502,7 +502,7 @@ def main():
                        f"--input-frames={input_frames}",
                        f"--flat-frames={flat}",
                        f"--bias-frames={bias}",
-                       f"--with-scamp-exec={args.scamp_path}",
+                       #f"--with-scamp-exec={args.scamp_path}",
                        f"--man-gaia={man_gaia}"
                        ]
     logger.info(f"Running {' '.join(subprocess_call)}")
