@@ -120,18 +120,6 @@ class CTIOPush:
                                  )
             valid = False
 
-        if not self.push_dir.is_dir():
-            self.logger.critical(f"The provided push directory, "
-                                 f"{self.push_dir}, does not exist!"
-                                 )
-            valid = False
-
-        if not self.target_dir.is_dir():
-            self.logger.critical(f"The provided target directory, "
-                                 f"{self.target_dir}, does not exist!"
-                                 )
-            valid = False
-
         return valid
 
     def set_ssh_config(self,
