@@ -345,6 +345,7 @@ class Prepipe:
                             f'-l --local-dir {self.path_to_untar} ' \
                             '&\n'
             if not self.compress:
+                self.logger.debug("Adding no-compress to sbatch call")
                 jobs_str_temp.replace('&\n', '--no-compress &\n')
 
         jobs_str = ''
