@@ -90,6 +90,8 @@ def wait_for_file(filepath: Union[str, Path],
     Returns:
         A bool that is True if the file has been written and False otherwise.
     """
+    logger = logging.getLogger()
+    
     if isinstance(filepath, str):
         filepath = Path(filepath)
 
@@ -97,13 +99,16 @@ def wait_for_file(filepath: Union[str, Path],
     fsize_old = filepath.stat().st_size
 
     while True:
+        logger.debug(f"Waited {wait_time}")
         time.sleep(wait_time)
         waited_time += wait_time
 
         fsize_new = filepath.stat().st_size
         if fsize_new == fsize_old:
+            logger.debug(f"File size has not changed - returning True")
             return True
         elif waited_time > max_wait:
-            return False
+            logger.debug(f"Max wait elapsed - returning False")
+            return False 
 
         fsize_old = fsize_new
