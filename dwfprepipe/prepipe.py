@@ -121,7 +121,7 @@ class Prepipe:
                         queue: str = 'bryan',
                         nodes: int = 1,
                         ppn: int = 4,
-                        mem: str = '90G',
+                        mem: str = '5G',
                         tmp: str = '4G',
                         ozstar_proj: str = 'oz100'
                         ):
